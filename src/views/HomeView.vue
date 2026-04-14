@@ -1,191 +1,278 @@
 <script setup>
-import { Github, ExternalLink, GraduationCap, MapPin, Mail, Calendar } from 'lucide-vue-next'
+import { Github, MapPin, Mail, Sparkles } from 'lucide-vue-next'
 import CertificateViewer from '../components/CertificateViewer.vue'
+import profileData from '../data/profile.json'
 
-const certs = [
-  { title: '🎓 CCF 大模型能力认证 (LMCC) 三级 (88分)', url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf' },
-  { title: '🏆 全国大学生数学建模竞赛 省级一等奖', url: '#' },
-  { title: '📄 英语六级证书 (CET-6)', url: '#' }
-]
-
-const education = [
-  { school: '某某大学', degree: '计算机科学与技术 (本科)', period: '2021 - 2025', honors: '国家奖学金, GPA 3.9/4.0' }
-]
+// Avatar handling - assumes asset exists or shows placeholder
+const avatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&backgroundColor=6366f1'
 </script>
 
 <template>
   <div class="home-container animate-fade-in">
-    <section class="bio-section">
-      <div class="bio-header">
-        <h1 class="hero-title">Peiliang Cai<span>.</span></h1>
-        <p class="tagline geek-font">> Focus on Agentic RAG & Modern Frontend</p>
+    <!-- Hero with Avatar -->
+    <header class="hero-section">
+      <div class="header-main">
+        <div class="header-text">
+          <h1 class="hero-title">{{ profileData.name }}<span>.</span></h1>
+          <p class="tagline geek-font">> {{ profileData.tagline }}</p>
+        </div>
+        <div class="avatar-box glass">
+          <img :src="avatarUrl" alt="Avatar" class="avatar-img" />
+          <div class="avatar-status"></div>
+        </div>
+      </div>
+      
+      <div class="bio-intro">
+        <p v-for="(p, i) in profileData.intro" :key="i" class="intro-p" v-html="p"></p>
       </div>
 
-      <div class="bio-grid">
-        <div class="bio-text">
-          <p class="intro-p">
-            你好，我是<b>蔡培梁</b>。一名对底层技术和极客文化充满热忱的本科生。目前我的研究中心围绕着<strong>智能体搜索 (Agentic Search)</strong> 与 <strong>高性能前端架构</strong>。
-          </p>
-          <p class="intro-p">
-            我喜欢在复杂的业务逻辑中抽象出优雅的系统架构，并不断探索 AI 原生应用在 Web 端生产力工具中的落地可能。
-          </p>
-          
-          <div class="education-info">
-            <h3 class="sub-heading">Education</h3>
-            <div v-for="edu in education" :key="edu.school" class="edu-card glass">
-              <div class="edu-top">
-                <span class="school">{{ edu.school }}</span>
-                <span class="period">{{ edu.period }}</span>
+      <div class="quick-contact">
+        <span class="contact-item"><MapPin :size="14" /> {{ profileData.contact.location }}</span>
+        <span class="contact-item"><Mail :size="14" /> {{ profileData.contact.email }}</span>
+        <a :href="'https://' + profileData.contact.github" target="_blank" class="contact-item link">
+          <Github :size="14" /> {{ profileData.contact.github }}
+        </a>
+      </div>
+    </header>
+
+    <!-- Vertical Layout Sections -->
+    <div class="main-content-flow">
+      <!-- 1. Education -->
+      <section class="content-section">
+        <h3 class="sub-heading"><Sparkles :size="14" /> Education</h3>
+        <div class="vertical-list">
+          <div v-for="edu in profileData.education" :key="edu.school" class="edu-card-v glass">
+            <div class="edu-main">
+              <div class="edu-primary">
+                <span class="school-name">{{ edu.school }}</span>
+                <span class="degree-name">{{ edu.degree }}</span>
               </div>
-              <p class="degree">{{ edu.degree }}</p>
-              <p class="honors">{{ edu.honors }}</p>
+              <span class="period-v geek-font">{{ edu.period }}</span>
             </div>
+            <p class="honors-v">{{ edu.honors }}</p>
           </div>
         </div>
+      </section>
 
-        <div class="bio-sidebar">
-          <div class="contact-card glass">
-            <h3 class="sub-heading">Contact & Social</h3>
-            <ul class="contact-list">
-              <li><MapPin :size="16" /> 上海, 中国</li>
-              <li><Mail :size="16" /> example@email.com</li>
-              <li>
-                <a href="https://github.com/PeiliangCai" target="_blank" class="link-item">
-                  <Github :size="16" /> github.com/PeiliangCai
-                </a>
-              </li>
-            </ul>
+      <!-- 2. Certifications & Awards -->
+      <section class="content-section">
+        <h3 class="sub-heading"><Sparkles :size="14" /> Certifications & Achievements</h3>
+        
+        <div class="certs-group">
+          <!-- Certificates -->
+          <div class="group-label geek-font">CERTIFICATES</div>
+          <div class="certs-list-v">
+            <CertificateViewer 
+              v-for="cert in profileData.certificates" 
+              :key="cert.title" 
+              :title="cert.title" 
+              :pdfUrl="cert.url" 
+            />
           </div>
 
-          <div class="certs-area">
-            <h3 class="sub-heading">Certifications</h3>
-            <div class="certs-list">
-              <CertificateViewer 
-                v-for="cert in certs" 
-                :key="cert.title" 
-                :title="cert.title" 
-                :pdfUrl="cert.url" 
-              />
-            </div>
+          <!-- Divider -->
+          <div class="divider-dashed"></div>
+
+          <!-- Awards -->
+          <div class="group-label geek-font">AWARDS & SCHOLARSHIPS</div>
+          <div class="certs-list-v">
+            <CertificateViewer 
+              v-for="award in profileData.awards" 
+              :key="award.title" 
+              :title="award.title" 
+              :pdfUrl="award.url" 
+            />
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .home-container {
-  max-width: 1000px;
+  max-width: 850px;
   margin: 0 auto;
   padding: 4rem 2rem;
+}
+
+.hero-section {
+  margin-bottom: 5rem;
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
 }
 
 .hero-title {
   font-size: 3.5rem;
   font-weight: 800;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .hero-title span { color: var(--accent-primary); }
 
 .tagline {
   color: var(--accent-secondary);
-  font-size: 1rem;
-  margin-bottom: 4rem;
+  font-size: 0.95rem;
 }
 
-.bio-grid {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 4rem;
+/* Avatar Styling */
+.avatar-box {
+  width: 120px;
+  height: 120px;
+  border-radius: 24px;
+  padding: 8px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  object-fit: cover;
+  background: var(--bg-dark);
+}
+
+.avatar-status {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  background: var(--accent-secondary);
+  border: 2px solid var(--bg-dark);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-secondary);
+}
+
+.bio-intro {
+  margin-bottom: 2rem;
 }
 
 .intro-p {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   line-height: 1.8;
   color: var(--text-secondary);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+}
+
+.quick-contact {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contact-item.link:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+
+/* Vertical Flow Layout */
+.main-content-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
 }
 
 .sub-heading {
   font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
   color: var(--accent-primary);
-  margin-bottom: 1.5rem;
-  font-weight: 800;
-}
-
-.edu-card {
-  padding: 1.5rem;
-}
-
-.edu-top {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.school {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.period {
-  font-size: 0.85rem;
-  color: var(--accent-secondary);
-}
-
-.degree {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.honors {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.contact-card {
-  padding: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-.contact-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  font-size: 0.95rem;
-}
-
-.contact-list li {
+  margin-bottom: 2rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+}
+
+.edu-card-v {
+  padding: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.edu-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.edu-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.school-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.degree-name {
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
-.link-item {
+.period-v {
+  font-size: 0.8rem;
+  color: var(--accent-secondary);
+  background: rgba(16, 185, 129, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.honors-v {
+  font-size: 0.9rem;
   color: var(--accent-primary);
   font-weight: 600;
 }
 
-.link-item:hover { text-decoration: underline; }
-
-.certs-area {
-  margin-top: 1rem;
-}
-
-.certs-list {
+/* Certs & Awards Grouping */
+.certs-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.5rem;
 }
 
-@media (max-width: 850px) {
-  .bio-grid { grid-template-columns: 1fr; }
+.group-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.divider-dashed {
+  margin: 1.5rem 0;
+  border-top: 1px dashed var(--border-color);
+  width: 100%;
+}
+
+.certs-list-v {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+@media (max-width: 600px) {
+  .header-main {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 2rem;
+  }
   .hero-title { font-size: 2.5rem; }
+  .edu-main { flex-direction: column; gap: 1rem; }
 }
 </style>
