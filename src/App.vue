@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Sun, Moon, Home, BookOpen, User } from 'lucide-vue-next'
+import { Sun, Moon, Terminal, Layout, Microscope, Edit3 } from 'lucide-vue-next'
 
 const isDark = ref(true)
 
@@ -18,154 +18,142 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-sparkle"></div>
-  
-  <nav class="navbar glass-effect">
-    <div class="nav-content">
-      <router-link to="/" class="logo">
-        <span class="logo-dot"></span>
-        Personal<span>Blog</span>
+  <header class="header glass">
+    <nav class="nav">
+      <router-link to="/" class="nav-brand geek-font">
+        <span class="pulse"></span>
+        PEILIANG.<span>CLI</span>
       </router-link>
       
       <div class="nav-links">
-        <router-link to="/" class="nav-item">
-          <Home :size="18" />
-          <span>首页</span>
+        <router-link to="/" class="nav-link">
+          <Terminal :size="18" /> <span>HOME</span>
         </router-link>
-        <router-link to="/posts" class="nav-item">
-          <BookOpen :size="18" />
-          <span>文章</span>
+        <router-link to="/portfolio" class="nav-link">
+          <Layout :size="18" /> <span>PORTFOLIO</span>
         </router-link>
-        <router-link to="/about" class="nav-item">
-          <User :size="18" />
-          <span>关于我</span>
+        <router-link to="/research" class="nav-link">
+          <Microscope :size="18" /> <span>RESEARCH</span>
+        </router-link>
+        <router-link to="/blog" class="nav-link">
+          <Edit3 :size="18" /> <span>BLOG</span>
         </router-link>
       </div>
-      
-      <button @click="toggleTheme" class="theme-toggle" aria-label="Toggle Theme">
+
+      <button @click="toggleTheme" class="theme-btn">
         <Moon v-if="isDark" :size="20" />
         <Sun v-else :size="20" />
       </button>
-    </div>
-  </nav>
+    </nav>
+  </header>
 
-  <main class="main-container">
+  <main class="main">
     <router-view v-slot="{ Component }">
-      <transition name="fade" mode="out-in">
+      <transition name="page" mode="out-in">
         <component :is="Component" />
       </transition>
     </router-view>
   </main>
-
-  <footer class="footer">
-    <p>© {{ new Date().getFullYear() }} Personal Blog. Built with Vue 3.</p>
-  </footer>
 </template>
 
 <style scoped>
-.navbar {
+.header {
   position: fixed;
-  top: 1.5rem;
+  top: 1rem;
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
-  max-width: 1000px;
+  max-width: 1200px;
   z-index: 1000;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 2rem;
+  border-radius: 20px;
 }
 
-.nav-content {
+.nav {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
-.logo {
-  font-size: 1.25rem;
-  font-weight: 700;
+.nav-brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
-.logo span {
-  color: var(--accent-color);
+.nav-brand span {
+  color: var(--accent-primary);
 }
 
-.logo-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent-color);
+.pulse {
+  width: 10px;
+  height: 10px;
+  background-color: var(--accent-secondary);
   border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-secondary);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  70% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
 }
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
-.nav-item {
+.nav-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 500;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  transition: all var(--transition-speed);
-}
-
-.nav-item:hover, .router-link-active {
-  color: var(--accent-color);
-}
-
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  border-radius: 12px;
-  background: var(--border-color);
-  color: var(--text-primary);
-  transition: all var(--transition-speed);
-}
-
-.theme-toggle:hover {
-  background: var(--accent-color);
-  color: white;
-  transform: scale(1.1);
-}
-
-.main-container {
-  flex: 1;
-  padding-top: 8rem;
-  padding-bottom: 4rem;
-  width: 90%;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.footer {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-secondary);
   font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: color 0.3s var(--transition-smooth);
 }
 
-/* Transitions */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+.nav-link:hover, .router-link-active {
+  color: var(--accent-primary);
 }
 
-.fade-enter-from {
+.theme-btn {
+  padding: 0.5rem;
+  border-radius: 10px;
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  transition: all 0.3s;
+}
+
+.theme-btn:hover {
+  background: var(--border-color);
+  transform: translateY(-2px);
+}
+
+.main {
+  padding-top: 6rem;
+  min-height: 100vh;
+}
+
+/* Page Transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.4s var(--transition-smooth);
+}
+
+.page-enter-from {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(20px);
 }
 
-.fade-leave-to {
+.page-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-20px);
 }
 
 @media (max-width: 768px) {
