@@ -1,10 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Eye, X, Download, Printer } from 'lucide-vue-next'
-import * as pdfjsLib from 'pdfjs-dist'
-
-// Worker setup for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+import { Eye, X } from 'lucide-vue-next'
 
 const props = defineProps({
   title: String,
@@ -14,41 +10,53 @@ const props = defineProps({
 const isOpen = ref(false)
 const canvasRef = ref(null)
 const isLoading = ref(false)
+let pdfjsLib = null
 
 const openModal = async () => {
   isOpen.value = true
   isLoading.value = true
   
-  // Wait for canvas to be in DOM
-  setTimeout(async () => {
-    try {
-      const loadingTask = pdfjsLib.getDocument(props.pdfUrl)
-      const pdf = await loadingTask.promise
-      const page = await pdf.getPage(1)
-      
-      const viewport = page.getViewport({ scale: 1.5 })
-      const canvas = canvasRef.value
-      const context = canvas.getContext('2d')
-      
-      canvas.height = viewport.height
-      canvas.width = viewport.width
-      
-      const renderContext = {
-        canvasContext: context,
-        viewport: viewport
-      }
-      
-      await page.render(renderContext).promise
-      
-      // Add Watermark
-      addWatermark(context, canvas.width, canvas.height)
-      
-    } catch (error) {
-      console.error('Error rendering PDF:', error)
-    } finally {
-      isLoading.value = false
+  try {
+    // Dynamic import for PDF.js to reduce main bundle size and improve page load speed
+    if (!pdfjsLib) {
+      pdfjsLib = await import('pdfjs-dist')
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
     }
-  }, 100)
+
+    // Wait for canvas to be in DOM
+    setTimeout(async () => {
+      try {
+        const loadingTask = pdfjsLib.getDocument(props.pdfUrl)
+        const pdf = await loadingTask.promise
+        const page = await pdf.getPage(1)
+        
+        const viewport = page.getViewport({ scale: 1.5 })
+        const canvas = canvasRef.value
+        if (!canvas) return
+        
+        const context = canvas.getContext('2d')
+        
+        canvas.height = viewport.height
+        canvas.width = viewport.width
+        
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        }
+        
+        await page.render(renderContext).promise
+        addWatermark(context, canvas.width, canvas.height)
+      } catch (err) {
+        console.error('PDF Render Error:', err)
+      } finally {
+        isLoading.value = false
+      }
+    }, 100)
+    
+  } catch (error) {
+    console.error('Error loading PDF.js:', error)
+    isLoading.value = false
+  }
 }
 
 const addWatermark = (ctx, width, height) => {
@@ -71,11 +79,8 @@ const closeModal = () => {
   isOpen.value = false
 }
 
-// Anti-theft: Disable right click inside modal
 const handleContextMenu = (e) => {
-  if (isOpen.value) {
-    e.preventDefault()
-  }
+  if (isOpen.value) e.preventDefault()
 }
 
 onMounted(() => {
@@ -107,14 +112,16 @@ onUnmounted(() => {
         </header>
         
         <div class="canvas-wrapper" @contextmenu.prevent>
-          <div v-if="isLoading" class="loader">渲染中...</div>
-          <canvas ref="canvasRef" class="pdf-canvas"></canvas>
-          <!-- Pointer events none overlay for extra security -->
+          <div v-if="isLoading" class="loader-box">
+             <div class="spinner"></div>
+             <span>SECURE RENDERING...</span>
+          </div>
+          <canvas ref="canvasRef" class="pdf-canvas" v-show="!isLoading"></canvas>
           <div class="security-overlay"></div>
         </div>
 
         <footer class="modal-footer">
-          <p class="warning-text">⚠️ 该展示已由 Canvas 渲染为图片，并受到数字水印保护。已禁用打印与右键。</p>
+          <p class="warning-text">⚠️ 受到数字水印保护。已禁用打印与右键。</p>
         </footer>
       </div>
     </div>
@@ -143,10 +150,6 @@ onUnmounted(() => {
   gap: 1rem;
 }
 
-.cert-icon {
-  font-size: 1.5rem;
-}
-
 .cert-title {
   font-weight: 500;
   color: var(--text-primary);
@@ -154,29 +157,39 @@ onUnmounted(() => {
 
 .view-btn {
   color: var(--text-secondary);
-  transition: color 0.3s;
 }
 
-.cert-item:hover .view-btn {
-  color: var(--accent-primary);
-}
-
-/* Modal */
 .modal-container {
   width: 90%;
   max-width: 800px;
   background: var(--bg-dark);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-.modal-header {
+.loader-box {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  gap: 1rem;
+  padding: 4rem;
+  color: var(--accent-primary);
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .canvas-wrapper {
@@ -185,7 +198,7 @@ onUnmounted(() => {
   overflow-y: auto;
   display: flex;
   justify-content: center;
-  background: #1e1e1e;
+  background: #111;
   padding: 2rem;
 }
 
@@ -193,41 +206,5 @@ onUnmounted(() => {
   max-width: 100%;
   height: auto;
   user-select: none;
-  -webkit-user-drag: none;
-}
-
-.security-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.modal-footer {
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  text-align: center;
-}
-
-.warning-text {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.loader {
-  color: var(--accent-primary);
-  font-weight: bold;
-}
-
-.close-btn {
-  color: var(--text-secondary);
-  transition: color 0.3s;
-}
-
-.close-btn:hover {
-  color: #ff4757;
 }
 </style>

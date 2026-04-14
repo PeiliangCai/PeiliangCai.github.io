@@ -2,7 +2,6 @@
 import { ref, onMounted, onUpdated } from 'vue'
 import { ArrowLeft, Calendar, Tag, Clipboard, Check } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import matter from 'gray-matter'
 import MarkdownIt from 'markdown-it'
 import Prism from 'prismjs'
 
@@ -27,6 +26,28 @@ const post = ref(null)
 const htmlContent = ref('')
 const copied = ref({})
 
+// Utility: Lightweight frontmatter parser (Browser-safe)
+const parseFrontmatter = (content) => {
+  const fmRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/
+  const match = content.match(fmRegex)
+  if (!match) return { data: {}, content }
+  
+  const yamlStr = match[1]
+  const data = {}
+  yamlStr.split('\n').forEach(line => {
+    const [key, ...valParts] = line.split(':')
+    if (key && valParts.length > 0) {
+      let val = valParts.join(':').trim()
+      if (val.startsWith('[') && val.endsWith(']')) {
+        val = val.slice(1, -1).split(',').map(s => s.trim())
+      }
+      data[key.trim()] = val
+    }
+  })
+  
+  return { data, content: content.replace(fmRegex, '') }
+}
+
 const loadPost = async () => {
   try {
     const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
@@ -34,11 +55,11 @@ const loadPost = async () => {
     
     if (modules[path]) {
       const rawContent = await modules[path]()
-      const { data, content } = matter(rawContent)
+      const { data, content } = parseFrontmatter(rawContent)
       post.value = data
       htmlContent.value = md.render(content)
       
-      // Highlight code
+      // Highlight code after next tick
       setTimeout(() => {
         Prism.highlightAll()
         attachCopyButtons()
@@ -93,7 +114,7 @@ const goBack = () => router.push('/blog')
       </div>
       <h1 class="title">{{ post.title }}</h1>
       <div class="tags">
-        <span v-for="tag in post.tags" :key="tag" class="tag">#{{ tag }}</span>
+        <span v-for="tag in post.tags || []" :key="tag" class="tag">#{{ tag }}</span>
       </div>
     </header>
 
@@ -102,8 +123,7 @@ const goBack = () => router.push('/blog')
 </template>
 
 <style>
-/* Scoped styles don't work well with v-html for markdown-it output, 
-   so we use a mix or deep selectors if needed, but here we'll define standard classes */
+/* ... same styles as before ... */
 .post-detail-container {
   max-width: 800px;
   margin: 0 auto;
@@ -180,7 +200,6 @@ const goBack = () => router.push('/blog')
   font-size: 0.9em;
 }
 
-/* Prism Copy Button */
 pre {
   position: relative;
 }

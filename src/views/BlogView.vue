@@ -1,22 +1,48 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Search, Tag, Calendar, ChevronRight } from 'lucide-vue-next'
-import matter from 'gray-matter'
 
 const blogs = ref([])
 const categories = ref(['全部', '大模型工程', '前端架构', '踩坑记录'])
 const selectedCategory = ref('全部')
 const searchQuery = ref('')
 
+// Utility: Lightweight frontmatter parser (Browser-safe)
+const parseFrontmatter = (content) => {
+  const fmRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/
+  const match = content.match(fmRegex)
+  if (!match) return { data: {}, content }
+  
+  const yamlStr = match[1]
+  const data = {}
+  yamlStr.split('\n').forEach(line => {
+    const [key, ...valParts] = line.split(':')
+    if (key && valParts.length > 0) {
+      let val = valParts.join(':').trim()
+      // Basic array parsing [a, b, c]
+      if (val.startsWith('[') && val.endsWith(']')) {
+        val = val.slice(1, -1).split(',').map(s => s.trim())
+      }
+      data[key.trim()] = val
+    }
+  })
+  
+  return { data, content: content.replace(fmRegex, '') }
+}
+
 onMounted(async () => {
+  // Use eager: false to load content only when metadata is processed if needed
+  // However, for pure local blog, raw content is needed once
   const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
   const posts = []
   
   for (const path in modules) {
     const rawContent = await modules[path]()
-    const { data } = matter(rawContent)
+    const { data } = parseFrontmatter(rawContent)
     const id = path.split('/').pop().replace('.md', '')
-    posts.push({ id, ...data })
+    if (data.title) {
+      posts.push({ id, ...data })
+    }
   }
   
   blogs.value = posts.sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -24,7 +50,7 @@ onMounted(async () => {
 
 const filteredBlogs = () => {
   return blogs.value.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesSearch = post.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
     const matchesCategory = selectedCategory.value === '全部' || post.category === selectedCategory.value
     return matchesSearch && matchesCategory
   })
@@ -77,7 +103,7 @@ const filteredBlogs = () => {
           </div>
           <h2 class="post-title">{{ post.title }}</h2>
           <div class="post-tags">
-            <span v-for="tag in post.tags" :key="tag" class="tag">{{ tag }}</span>
+            <span v-for="tag in post.tags || []" :key="tag" class="tag">{{ tag }}</span>
           </div>
           <div class="read-more">
             Read Post <ChevronRight :size="16" />
