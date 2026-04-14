@@ -1,4 +1,4 @@
-# lycus-Liang.github.io
+# PeiliangCai.github.io
 
 欢迎来到我的个人博客！
 
@@ -30,4 +30,4 @@ npm run build
 2. `Build and deployment` -> `Source` 选择 **GitHub Actions**。
 
 ---
-Built with ❤️ by Antigravity AI & lycus-Liang
+Built with ❤️ by Antigravity AI & PeiliangCai
