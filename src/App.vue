@@ -49,6 +49,7 @@ onMounted(() => {
 
   <main class="main">
     <router-view v-slot="{ Component }">
+      <!-- Shortened transition duration from 0.4s to 0.2s for snappier feel -->
       <transition name="page" mode="out-in">
         <component :is="Component" />
       </transition>
@@ -127,7 +128,7 @@ onMounted(() => {
   border-radius: 10px;
   color: var(--text-primary);
   background: var(--glass-bg);
-  transition: all 0.3s;
+  transition: all 0.2s; /* Snappier hover */
 }
 
 .theme-btn:hover {
@@ -140,20 +141,20 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-/* Page Transitions */
+/* Snappier Page Transitions */
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.4s var(--transition-smooth);
+  transition: all 0.25s var(--transition-smooth);
 }
 
 .page-enter-from {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(10px); /* Reduced movement */
 }
 
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateY(-10px);
 }
 
 @media (max-width: 768px) {
