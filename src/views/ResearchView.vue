@@ -45,7 +45,7 @@ const openImage = (url) => {
 <template>
   <div class="research-container animate-fade-in">
     <header class="academic-header">
-      <h1 class="scholar-name">Peiliang Cai (蔡培梁)</h1>
+      <h1 class="scholar-name">Peiliang Cai</h1>
       <p class="affiliation">Undergraduate Student @ Computer Science</p>
       <div class="scholar-links">
         <a href="#"><Quote :size="14" /> Google Scholar</a>

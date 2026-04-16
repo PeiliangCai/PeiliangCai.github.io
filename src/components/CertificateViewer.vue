@@ -19,41 +19,69 @@ const openModal = async () => {
   isOpen.value = true
   isLoading.value = true
   
-  try {
-    if (!pdfjsLib) {
-      pdfjsLib = await import('pdfjs-dist')
-      // Set worker using the local bundled URL
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
-    }
+  const isImage = /\.(jpg|jpeg|png|webp|svg)$/i.test(props.pdfUrl)
 
-    setTimeout(async () => {
-      try {
-        const loadingTask = pdfjsLib.getDocument(props.pdfUrl)
-        const pdf = await loadingTask.promise
-        const page = await pdf.getPage(1)
-        
-        const viewport = page.getViewport({ scale: 1.5 })
-        const canvas = canvasRef.value
-        if (!canvas) return
-        
-        const context = canvas.getContext('2d')
-        canvas.height = viewport.height
-        canvas.width = viewport.width
-        
-        const renderContext = { canvasContext: context, viewport: viewport }
-        await page.render(renderContext).promise
-        addWatermark(context, canvas.width, canvas.height)
-      } catch (err) {
-        console.error('PDF Render Error:', err)
-      } finally {
-        isLoading.value = false
-      }
-    }, 100)
+  try {
+    const canvas = canvasRef.value
+    // Wait for DOM to render canvasRef
+    await new Promise(r => setTimeout(r, 50))
+    const ctx = canvasRef.value?.getContext('2d')
+    if (!ctx) return
+
+    if (isImage) {
+      await renderImageToCanvas(ctx)
+    } else {
+      await renderPDF(ctx)
+    }
     
+    // Always add watermark after content is drawn
+    addWatermark(ctx, canvasRef.value.width, canvasRef.value.height)
   } catch (error) {
-    console.error('Error loading PDF.js:', error)
+    console.error('Error rendering certificate:', error)
+  } finally {
     isLoading.value = false
   }
+}
+
+const renderImageToCanvas = (ctx) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const canvas = canvasRef.value
+      // Base scale on window width or original size
+      const maxWidth = Math.min(window.innerWidth * 0.9, 800)
+      const scale = maxWidth / img.width
+      
+      canvas.width = img.width * scale
+      canvas.height = img.height * scale
+      
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve()
+    }
+    img.onerror = () => reject(new Error('Image load failed'))
+    img.src = props.pdfUrl
+  })
+}
+
+const renderPDF = async (ctx) => {
+  if (!pdfjsLib) {
+    pdfjsLib = await import('pdfjs-dist')
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+  }
+
+  const loadingTask = pdfjsLib.getDocument(props.pdfUrl)
+  const pdf = await loadingTask.promise
+  const page = await pdf.getPage(1)
+  
+  const viewport = page.getViewport({ scale: 1.5 })
+  const canvas = canvasRef.value
+  
+  canvas.height = viewport.height
+  canvas.width = viewport.width
+  
+  const renderContext = { canvasContext: ctx, viewport: viewport }
+  await page.render(renderContext).promise
 }
 
 const addWatermark = (ctx, width, height) => {

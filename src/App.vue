@@ -21,8 +21,7 @@ onMounted(() => {
   <header class="header glass">
     <nav class="nav">
       <router-link to="/" class="nav-brand geek-font">
-        <span class="pulse"></span>
-        PEILIANG.<span>CLI</span>
+        PEILIANG.<span>CAI</span>
       </router-link>
       
       <div class="nav-links">
@@ -49,10 +48,9 @@ onMounted(() => {
 
   <main class="main">
     <router-view v-slot="{ Component }">
-      <!-- Shortened transition duration from 0.4s to 0.2s for snappier feel -->
-      <transition name="page" mode="out-in">
+      <keep-alive>
         <component :is="Component" />
-      </transition>
+      </keep-alive>
     </router-view>
   </main>
 </template>
@@ -116,7 +114,7 @@ onMounted(() => {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
-  transition: color 0.3s var(--transition-smooth);
+  transition: color 0.2s;
 }
 
 .nav-link:hover, .router-link-active {
@@ -128,7 +126,7 @@ onMounted(() => {
   border-radius: 10px;
   color: var(--text-primary);
   background: var(--glass-bg);
-  transition: all 0.2s; /* Snappier hover */
+  transition: all 0.2s;
 }
 
 .theme-btn:hover {
@@ -139,22 +137,6 @@ onMounted(() => {
 .main {
   padding-top: 6rem;
   min-height: 100vh;
-}
-
-/* Snappier Page Transitions */
-.page-enter-active,
-.page-leave-active {
-  transition: all 0.25s var(--transition-smooth);
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(10px); /* Reduced movement */
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 
 @media (max-width: 768px) {

@@ -31,21 +31,18 @@ const parseFrontmatter = (content) => {
 }
 
 onMounted(async () => {
-  // Use eager: false to load content only when metadata is processed if needed
-  // However, for pure local blog, raw content is needed once
   const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
-  const posts = []
   
-  for (const path in modules) {
-    const rawContent = await modules[path]()
+  // Load all raw content in parallel
+  const postPromises = Object.entries(modules).map(async ([path, loader]) => {
+    const rawContent = await loader()
     const { data } = parseFrontmatter(rawContent)
     const id = path.split('/').pop().replace('.md', '')
-    if (data.title) {
-      posts.push({ id, ...data })
-    }
-  }
+    return data.title ? { id, ...data } : null
+  })
   
-  blogs.value = posts.sort((a, b) => new Date(b.date) - new Date(a.date))
+  const results = await Promise.all(postPromises)
+  blogs.value = results.filter(p => p !== null).sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 
 const filteredBlogs = () => {

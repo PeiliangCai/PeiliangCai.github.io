@@ -57,11 +57,11 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Glassmorphism */
+/* Glassmorphism - Optimized blur for better transition performance */
 .glass {
   background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-color);
   border-radius: 12px;
 }
@@ -118,4 +118,14 @@ pre[class*="language-"] {
   border-radius: 12px !important;
   border: 1px solid var(--border-color) !important;
   margin: 1.5rem 0 !important;
+}
+
+/* NProgress Customization */
+#nprogress .bar {
+  background: var(--accent-primary) !important;
+  height: 3px !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--accent-primary), 0 0 5px var(--accent-primary) !important;
 }

@@ -1,5 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 import HomeView from '../views/HomeView.vue'
+
+// NProgress Configuration
+NProgress.configure({ 
+  showSpinner: false, // 禁用右上角的加载圈，保持极简
+  speed: 400,
+  minimum: 0.2
+})
 
 const routes = [
   {
@@ -36,6 +45,19 @@ const router = createRouter({
   scrollBehavior() {
     return { top: 0, behavior: 'smooth' }
   }
+})
+
+// 路由钩子：开始加载条
+router.beforeEach((to, from, next) => {
+  if (to.path !== from.path) {
+    NProgress.start()
+  }
+  next()
+})
+
+// 路由钩子：结束加载条
+router.afterEach(() => {
+  NProgress.done()
 })
 
 export default router

@@ -1,29 +1,41 @@
 {
-  "name": "蔡沛良",
-  "tagline": "Focus on Agentic RAG & Modern Frontend",
+  "name": "Cai Peiliang",
+  "tagline": "Software Engineering @ SYSU | Researching Agentic RAG & AI Agents",
   "intro": [
-    "你好，我是蔡沛良。目前我的研究中心围绕着智能体搜索 (Agentic Search) 与 高性能前端架构。",
-    "我喜欢在复杂的业务逻辑中抽象出优雅的系统架构，并不断探索 AI 原生应用在 Web 端生产力工具中的落地可能。"
+    "Hi, I'm Peiliang Cai, a Software Engineering student at Sun Yat-sen University, working under the guidance of Dr. Weibin Wu.",
+    "My current research focuses on the design and implementation of Agentic RAG. I am deeply passionate about exploring the frontiers of AI Agents and abstracting elegant system architectures from complex logic to build next-generation AI-native productivity tools."
   ],
   "contact": {
-    "location": "上海, 中国",
-    "email": "example@email.com",
+    "location": "Guangzhou, China",
+    "email": "13077290887@163.com",
     "github": "github.com/PeiliangCai"
   },
   "education": [
     {
-      "school": "某某大学",
-      "degree": "计算机科学与技术 (本科)",
-      "period": "2021 - 2025",
-      "honors": "国家奖学金, GPA 3.9/4.0"
+      "school": "Sun Yat-sen University",
+      "degree": "Software Engineering (Undergraduate)",
+      "period": "2023 - 2027",
+      "honors": "GPA 3.9/4.0"
     }
   ],
   "certificates": [
-    { "title": "🎓 CCF 大模型能力认证 (LMCC) 三级 (88分)", "url": "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf" },
-    { "title": "📄 英语六级证书 (CET-6)", "url": "#" }
+    {
+      "title": "🎓 CCF Large Model Capability Certification (LMCC) Level 3",
+      "url": "/certs/LMCC认证证书.png"
+    }
   ],
-  "awards": [
-    { "title": "🏆 全国大学生数学建模竞赛 省级一等奖", "url": "#" },
-    { "title": "🎖️ 优秀学生干部 / 一等奖学金", "url": "#" }
+  "achievements": [],
+  "hobbies": [
+    {
+      "icon": "🏋️",
+      "title": "Body Transformation",
+      "desc": "I am a fitness enthusiast on a journey to reach a target weight of 70kg. To me, it is a practice of discipline and consistent growth."
+    },
+    {
+      "icon": "🗡️",
+      "title": "Spirit of Wuxia",
+      "desc": "Living for freedom and staying true to one's heart.",
+      "quote": "My name is Ah Liang, 'Liang' as in 'Kindness'."
+    }
   ]
 }

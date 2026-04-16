@@ -13,12 +13,11 @@ const avatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&back
     <header class="hero-section">
       <div class="header-main">
         <div class="header-text">
-          <h1 class="hero-title">{{ profileData.name }}<span>.</span></h1>
+          <h1 class="hero-title">{{ profileData.name }}</h1>
           <p class="tagline geek-font">> {{ profileData.tagline }}</p>
         </div>
         <div class="avatar-box glass">
           <img :src="avatarUrl" alt="Avatar" class="avatar-img" />
-          <div class="avatar-status"></div>
         </div>
       </div>
       
@@ -54,34 +53,51 @@ const avatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&back
         </div>
       </section>
 
-      <!-- 2. Certifications & Awards -->
-      <section class="content-section">
+      <!-- 2. Certifications & Achievements -->
+      <section v-if="profileData.certificates?.length || profileData.achievements?.length" class="content-section">
         <h3 class="sub-heading"><Sparkles :size="14" /> Certifications & Achievements</h3>
         
         <div class="certs-group">
           <!-- Certificates -->
-          <div class="group-label geek-font">CERTIFICATES</div>
-          <div class="certs-list-v">
-            <CertificateViewer 
-              v-for="cert in profileData.certificates" 
-              :key="cert.title" 
-              :title="cert.title" 
-              :pdfUrl="cert.url" 
-            />
+          <div v-if="profileData.certificates?.length" class="certs-sub-group">
+            <div class="group-label geek-font">CERTIFICATES</div>
+            <div class="certs-list-v">
+              <CertificateViewer 
+                v-for="cert in profileData.certificates" 
+                :key="cert.title" 
+                :title="cert.title" 
+                :pdfUrl="cert.url" 
+              />
+            </div>
           </div>
 
-          <!-- Divider -->
-          <div class="divider-dashed"></div>
+          <!-- Achievements -->
+          <div v-if="profileData.achievements?.length" class="certs-sub-group">
+            <div class="group-label geek-font">KEY ACHIEVEMENTS</div>
+            <div class="achievements-list">
+              <div v-for="ach in profileData.achievements" :key="ach.title" class="ach-item">
+                <span class="ach-dot"></span>
+                <span class="ach-text">{{ ach.title }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <!-- Awards -->
-          <div class="group-label geek-font">AWARDS & SCHOLARSHIPS</div>
-          <div class="certs-list-v">
-            <CertificateViewer 
-              v-for="award in profileData.awards" 
-              :key="award.title" 
-              :title="award.title" 
-              :pdfUrl="award.url" 
-            />
+      <!-- 3. Hobbies -->
+      <section v-if="profileData.hobbies?.length" class="content-section">
+        <h3 class="sub-heading"><Sparkles :size="14" /> Hobbies & Interests</h3>
+        <div class="hobbies-grid">
+          <div v-for="hobby in profileData.hobbies" :key="hobby.title" class="hobby-card glass">
+            <div class="hobby-header">
+              <span class="hobby-icon">{{ hobby.icon }}</span>
+              <h4 class="hobby-title">{{ hobby.title }}</h4>
+            </div>
+            <p class="hobby-desc">{{ hobby.desc }}</p>
+            <div v-if="hobby.quote" class="hobby-quote">
+              <span class="quote-mark">“</span>
+              <p>{{ hobby.quote }}</p>
+            </div>
           </div>
         </div>
       </section>
@@ -138,17 +154,6 @@ const avatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&back
   background: var(--bg-dark);
 }
 
-.avatar-status {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 12px;
-  height: 12px;
-  background: var(--accent-secondary);
-  border: 2px solid var(--bg-dark);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent-secondary);
-}
 
 .bio-intro {
   margin-bottom: 2rem;
@@ -241,11 +246,16 @@ const avatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&back
   font-weight: 600;
 }
 
-/* Certs & Awards Grouping */
 .certs-group {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2.5rem;
+}
+
+.certs-sub-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .group-label {
@@ -254,10 +264,102 @@ const avatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&back
   opacity: 0.6;
 }
 
-.divider-dashed {
-  margin: 1.5rem 0;
-  border-top: 1px dashed var(--border-color);
-  width: 100%;
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ach-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ach-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-primary);
+}
+
+.ach-text {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.hobbies-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.hobby-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.3s var(--transition-smooth);
+}
+
+.hobby-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-primary);
+}
+
+.hobby-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hobby-icon {
+  font-size: 1.5rem;
+}
+
+.hobby-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hobby-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.hobby-quote {
+  margin-top: auto;
+  padding: 0.75rem 1rem;
+  background: rgba(99, 102, 241, 0.05);
+  border-left: 2px solid var(--accent-primary);
+  position: relative;
+  font-style: italic;
+}
+
+.quote-mark {
+  position: absolute;
+  top: 0;
+  left: -1.5rem;
+  font-size: 2.5rem;
+  opacity: 0.1;
+  line-height: 1;
+  font-family: serif;
+}
+
+.hobby-quote p {
+  font-size: 0.85rem;
+  color: var(--accent-primary);
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 700px) {
+  .hobbies-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .certs-list-v {
