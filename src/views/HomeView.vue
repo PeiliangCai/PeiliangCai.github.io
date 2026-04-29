@@ -478,6 +478,17 @@ import siteData from '../data/site.json'
   .hero-section {
     padding: 1.5rem;
   }
+  .hero-title {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    font-size: clamp(1.75rem, 9.4vw, 2.25rem);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .hero-name-cn {
+    font-size: clamp(1rem, 5vw, 1.25rem);
+    flex-shrink: 0;
+  }
   .edu-main { flex-direction: column; gap: 1rem; }
 }
 </style>

@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const pointer = ref({ x: 50, y: 50 })
+const isMobile = ref(false)
 
 const seededRandom = (seed) => {
   let value = seed
@@ -33,7 +34,9 @@ const makeStars = (count, seed) => {
   })
 }
 
-const stars = makeStars(150, 3719)
+const desktopStars = makeStars(150, 3719)
+const mobileStars = makeStars(60, 9127)
+const stars = computed(() => isMobile.value ? mobileStars : desktopStars)
 
 const fieldStyle = computed(() => {
   const x = (pointer.value.x - 50) / 50
@@ -47,6 +50,25 @@ const fieldStyle = computed(() => {
 })
 
 const getStarStyle = (star) => {
+  if (isMobile.value) {
+    const color = {
+      cyan: 'rgba(0, 229, 255, 0.62)',
+      lime: 'rgba(182, 255, 59, 0.52)',
+      white: 'rgba(242, 251, 255, 0.68)'
+    }[star.hue]
+
+    return {
+      left: `${star.x}%`,
+      top: `${star.y}%`,
+      width: `${Math.max(0.7, star.size * 0.72)}px`,
+      height: `${Math.max(0.7, star.size * 0.72)}px`,
+      opacity: Math.min(0.72, star.opacity),
+      background: color,
+      boxShadow: `0 0 5px ${color}`,
+      animationDelay: star.delay
+    }
+  }
+
   const dx = star.x - pointer.value.x
   const dy = star.y - pointer.value.y
   const distance = Math.sqrt(dx * dx + dy * dy)
@@ -71,6 +93,7 @@ const getStarStyle = (star) => {
 }
 
 const handlePointerMove = (event) => {
+  if (isMobile.value) return
   pointer.value = {
     x: (event.clientX / window.innerWidth) * 100,
     y: (event.clientY / window.innerHeight) * 100
@@ -82,8 +105,11 @@ const handlePointerLeave = () => {
 }
 
 onMounted(() => {
-  window.addEventListener('pointermove', handlePointerMove, { passive: true })
-  window.addEventListener('pointerleave', handlePointerLeave)
+  isMobile.value = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
+  if (!isMobile.value) {
+    window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    window.addEventListener('pointerleave', handlePointerLeave)
+  }
 })
 
 onUnmounted(() => {
@@ -147,6 +173,31 @@ onUnmounted(() => {
   background: radial-gradient(circle, rgba(0, 229, 255, 0.12), rgba(255, 61, 242, 0.05) 32%, transparent 62%);
   filter: blur(10px);
   opacity: 0.7;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .starfield {
+    opacity: 0.72;
+  }
+
+  .milky-core {
+    left: -36vw;
+    top: 18vh;
+    width: 170vw;
+    height: 42vh;
+    transform: rotate(-22deg);
+    filter: blur(22px);
+    opacity: 0.58;
+  }
+
+  .star {
+    transition: none;
+    animation: none;
+  }
+
+  .cursor-aura {
+    display: none;
+  }
 }
 
 @keyframes twinkle {
