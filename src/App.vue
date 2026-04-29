@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Sun, Moon, Terminal, Layout, Microscope, Edit3 } from 'lucide-vue-next'
+import { Sun, Moon, Home, FolderKanban, GraduationCap, BookOpenText } from 'lucide-vue-next'
 import Starfield from './components/Starfield.vue'
 
 const isDark = ref(true)
@@ -30,16 +30,16 @@ onMounted(() => {
       
       <div class="nav-links">
         <router-link to="/" class="nav-link">
-          <Terminal :size="18" /> <span>HOME</span>
+          <Home :size="18" /> <span>HOME</span>
         </router-link>
         <router-link to="/portfolio" class="nav-link">
-          <Layout :size="18" /> <span>PORTFOLIO</span>
+          <FolderKanban :size="18" /> <span>PORTFOLIO</span>
         </router-link>
         <router-link to="/research" class="nav-link">
-          <Microscope :size="18" /> <span>RESEARCH</span>
+          <GraduationCap :size="18" /> <span>RESEARCH</span>
         </router-link>
         <router-link to="/blog" class="nav-link">
-          <Edit3 :size="18" /> <span>BLOG</span>
+          <BookOpenText :size="18" /> <span>BLOG</span>
         </router-link>
       </div>
 

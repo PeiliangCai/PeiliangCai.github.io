@@ -479,14 +479,19 @@ import siteData from '../data/site.json'
     padding: 1.5rem;
   }
   .hero-title {
+    width: 100%;
     flex-wrap: nowrap;
-    gap: 0.5rem;
-    font-size: clamp(1.75rem, 9.4vw, 2.25rem);
+    gap: 0.35rem;
+    font-size: clamp(1.55rem, 7.6vw, 2rem);
     line-height: 1;
     white-space: nowrap;
   }
+  .hero-name-en {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
   .hero-name-cn {
-    font-size: clamp(1rem, 5vw, 1.25rem);
+    font-size: clamp(0.9rem, 4.2vw, 1.12rem);
     flex-shrink: 0;
   }
   .edu-main { flex-direction: column; gap: 1rem; }
