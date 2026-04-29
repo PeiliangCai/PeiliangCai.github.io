@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Sun, Moon, Terminal, Layout, Microscope, Edit3 } from 'lucide-vue-next'
+import Starfield from './components/Starfield.vue'
 
 const isDark = ref(true)
 
@@ -18,6 +19,8 @@ onMounted(() => {
 </script>
 
 <template>
+  <Starfield />
+
   <header class="header glass">
     <nav class="nav">
       <router-link to="/" class="nav-brand geek-font">

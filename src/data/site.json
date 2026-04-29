@@ -1,5 +1,6 @@
 {
-  "avatarUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&backgroundColor=6366f1",
+  "avatarUrl": "./avatar.jpg",
+  "avatarBadge": "SYSU",
   "pages": {
     "home": {
       "kicker": "SYSU // AGENTIC RAG // AI-NATIVE SYSTEMS"

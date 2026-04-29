@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { EffectCoverflow, Pagination, Navigation } from 'swiper/modules'
 import { Github, X, ChevronRight } from 'lucide-vue-next'
 import projectsData from '../data/projects.json'
+import { attachGithubRepos } from '../utils/github'
 
 import 'swiper/css'
 import 'swiper/css/effect-coverflow'
@@ -11,7 +12,7 @@ import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 
 const modules = [EffectCoverflow, Pagination, Navigation]
-const coreProjects = projectsData.coreProjects
+const coreProjects = ref(projectsData.coreProjects)
 const otherProjects = projectsData.otherProjects
 
 const selectedProject = ref(null)
@@ -23,6 +24,10 @@ const openProject = (project) => {
 const closeProject = () => {
   selectedProject.value = null
 }
+
+onMounted(async () => {
+  coreProjects.value = await attachGithubRepos(projectsData.coreProjects, projectsData.github)
+})
 </script>
 
 <template>
@@ -60,6 +65,11 @@ const closeProject = () => {
               <div class="tags">
                 <span v-for="tag in p.tags" :key="tag">{{ tag }}</span>
               </div>
+              <div v-if="p.github" class="github-meta geek-font">
+                <span v-if="p.github.language">{{ p.github.language }}</span>
+                <span v-if="p.github.stars !== null">★ {{ p.github.stars }}</span>
+                <span v-if="p.github.forks !== null">⑂ {{ p.github.forks }}</span>
+              </div>
               <p>{{ p.desc }}</p>
               <button class="expand-btn">查看详情 <ChevronRight :size="16" /></button>
             </div>
@@ -82,6 +92,13 @@ const closeProject = () => {
             <div class="panel-section">
               <h4>架构路径 (Architecture)</h4>
               <div class="arch-box geek-font">{{ selectedProject.details.arch }}</div>
+            </div>
+            <div v-if="selectedProject.github" class="panel-section">
+              <h4>Repository</h4>
+              <a :href="selectedProject.github.url" target="_blank" class="repo-link glass">
+                <Github :size="16" />
+                <span>{{ selectedProject.github.fullName }}</span>
+              </a>
             </div>
           </div>
           <div class="panel-visual">
@@ -197,6 +214,7 @@ const closeProject = () => {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .tags span {
@@ -207,6 +225,17 @@ const closeProject = () => {
   border: 1px solid rgba(0, 229, 255, 0.2);
   border-radius: 4px;
   font-weight: 800;
+}
+
+.github-meta {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+  color: var(--accent-secondary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
 }
 
 .expand-btn {
@@ -280,6 +309,22 @@ const closeProject = () => {
   font-size: 0.85rem;
   color: var(--accent-secondary);
   overflow-wrap: anywhere;
+}
+
+.repo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  color: var(--accent-primary);
+  font-size: 0.9rem;
+  transition: all 0.25s var(--transition-smooth);
+}
+
+.repo-link:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-hot);
+  transform: translateY(-2px);
 }
 
 .video-placeholder {

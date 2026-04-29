@@ -39,6 +39,8 @@ export const loadBlogSummaries = async (modules) => {
     .sort((a, b) => new Date(b.date) - new Date(a.date))
 }
 
+export const loadMarkdownSummaries = loadBlogSummaries
+
 export const getCategoriesFromPosts = (posts) => [
   '全部',
   ...Array.from(new Set(posts.map(post => post.category).filter(Boolean)))

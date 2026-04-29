@@ -3,10 +3,15 @@
     "kicker": "BUILD LOG // DEPLOYED SYSTEMS",
     "title": "Core Projects"
   },
+  "github": {
+    "enabled": true,
+    "owner": "PeiliangCai"
+  },
   "coreProjects": [
     {
       "id": 1,
       "title": "Agentic RAG Engine",
+      "repo": "Agentic-RAG",
       "desc": "基于多智能体协作的检索增强生成系统，支持动态规划与自我反思。",
       "tags": ["Python", "LangChain", "Vue 3"],
       "img": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800",
@@ -19,6 +24,7 @@
     {
       "id": 2,
       "title": "Neo-Vite Dashboard",
+      "repo": "",
       "desc": "自研的高性能前端监控与性能仪表盘，支持实时日志流分析。",
       "tags": ["Vite", "Three.js", "WebWorker"],
       "img": "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=800",

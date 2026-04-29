@@ -1,56 +1,53 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Search, Calendar, ChevronRight } from 'lucide-vue-next'
-import siteData from '../data/site.json'
-import { getCategoriesFromPosts, loadBlogSummaries } from '../utils/blog'
+import { BookOpen, Calendar, ChevronRight, Search } from 'lucide-vue-next'
+import { getCategoriesFromPosts, loadMarkdownSummaries } from '../utils/blog'
 
-const blogs = ref([])
+const pages = ref([])
 const categories = ref(['全部'])
 const selectedCategory = ref('全部')
 const searchQuery = ref('')
 
 onMounted(async () => {
-  const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
-  blogs.value = await loadBlogSummaries(modules)
-  categories.value = getCategoriesFromPosts(blogs.value)
+  const modules = import.meta.glob('../wiki/*.md', { query: '?raw', import: 'default' })
+  pages.value = await loadMarkdownSummaries(modules)
+  categories.value = getCategoriesFromPosts(pages.value)
 })
 
-const filteredBlogs = () => {
-  return blogs.value.filter(post => {
-    const matchesSearch = post.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesCategory = selectedCategory.value === '全部' || post.category === selectedCategory.value
-    return matchesSearch && matchesCategory
-  })
-}
+const filteredPages = () => pages.value.filter(page => {
+  const query = searchQuery.value.toLowerCase()
+  const matchesSearch = page.title?.toLowerCase().includes(query) || page.summary?.toLowerCase().includes(query)
+  const matchesCategory = selectedCategory.value === '全部' || page.category === selectedCategory.value
+  return matchesSearch && matchesCategory
+})
 </script>
 
 <template>
-  <div class="blog-container animate-fade-in">
+  <div class="wiki-container animate-fade-in">
     <header class="page-header">
-      <p class="page-kicker geek-font">{{ siteData.pages.blog.kicker }}</p>
-      <h1 class="section-title">{{ siteData.pages.blog.title }}<span>.</span></h1>
+      <p class="page-kicker geek-font">LLM-WIKI // KNOWLEDGE GRAPH</p>
+      <h1 class="section-title">Wiki<span>.</span></h1>
       <div class="knowledge-switch">
-        <router-link to="/blog" class="switch-link active">Articles</router-link>
-        <router-link to="/wiki" class="switch-link">LLM Wiki</router-link>
+        <router-link to="/blog" class="switch-link">Articles</router-link>
+        <router-link to="/wiki" class="switch-link active">LLM Wiki</router-link>
       </div>
     </header>
 
-    <div class="blog-layout">
-      <!-- Sidebar / Filters -->
-      <aside class="blog-sidebar">
+    <div class="wiki-layout">
+      <aside class="wiki-sidebar">
         <div class="search-box glass">
           <Search :size="18" />
-          <input v-model="searchQuery" type="text" placeholder="Search posts..." />
+          <input v-model="searchQuery" type="text" placeholder="Search wiki..." />
         </div>
 
         <div class="filter-section">
           <h4>Categories</h4>
           <div class="cat-list">
-            <button 
-              v-for="cat in categories" 
+            <button
+              v-for="cat in categories"
               :key="cat"
               @click="selectedCategory = cat"
-              :class="{ 'active': selectedCategory === cat }"
+              :class="{ active: selectedCategory === cat }"
               class="cat-item"
             >
               {{ cat }}
@@ -59,26 +56,26 @@ const filteredBlogs = () => {
         </div>
       </aside>
 
-      <!-- Main Feed -->
-      <main class="blog-feed">
-        <div v-if="filteredBlogs().length === 0" class="empty">No posts found.</div>
-        
-        <router-link 
-          v-for="post in filteredBlogs()" 
-          :key="post.id"
-          :to="`/blog/${post.id}`"
-          class="post-card glass"
+      <main class="wiki-feed">
+        <div v-if="filteredPages().length === 0" class="empty">No wiki pages found.</div>
+
+        <router-link
+          v-for="page in filteredPages()"
+          :key="page.id"
+          :to="`/wiki/${page.id}`"
+          class="wiki-card glass"
         >
-          <div class="post-header">
-            <span class="post-cat"># {{ post.category }}</span>
-            <span class="post-date"><Calendar :size="14" /> {{ post.date }}</span>
+          <div class="wiki-card-meta">
+            <span class="wiki-cat"><BookOpen :size="14" /> {{ page.category || 'Wiki' }}</span>
+            <span v-if="page.updated" class="wiki-date"><Calendar :size="14" /> {{ page.updated }}</span>
           </div>
-          <h2 class="post-title">{{ post.title }}</h2>
-          <div class="post-tags">
-            <span v-for="tag in post.tags || []" :key="tag" class="tag">{{ tag }}</span>
+          <h2>{{ page.title }}</h2>
+          <p v-if="page.summary">{{ page.summary }}</p>
+          <div class="wiki-tags">
+            <span v-for="tag in page.tags || []" :key="tag">{{ tag }}</span>
           </div>
           <div class="read-more">
-            Read Post <ChevronRight :size="16" />
+            Open Node <ChevronRight :size="16" />
           </div>
         </router-link>
       </main>
@@ -87,7 +84,7 @@ const filteredBlogs = () => {
 </template>
 
 <style scoped>
-.blog-container {
+.wiki-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 2rem 5rem;
@@ -126,14 +123,14 @@ const filteredBlogs = () => {
   box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.16);
 }
 
-.blog-layout {
+.wiki-layout {
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 4rem;
   margin-top: 3rem;
 }
 
-.blog-sidebar {
+.wiki-sidebar {
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
@@ -151,11 +148,11 @@ const filteredBlogs = () => {
 }
 
 .search-box input {
-  background: none;
-  border: none;
-  color: var(--text-primary);
-  outline: none;
   width: 100%;
+  color: var(--text-primary);
+  background: none;
+  border: 0;
+  outline: none;
 }
 
 .search-box input::placeholder {
@@ -186,75 +183,66 @@ const filteredBlogs = () => {
   transition: all 0.25s var(--transition-smooth);
 }
 
-.cat-item:hover, .cat-item.active {
+.cat-item:hover,
+.cat-item.active {
   background: rgba(0, 229, 255, 0.07);
   border-color: var(--border-color);
   color: var(--accent-primary);
 }
 
-.post-card {
+.wiki-card {
   display: block;
-  position: relative;
   padding: 2rem;
   margin-bottom: 1.5rem;
-  overflow: hidden;
   transition: all 0.3s var(--transition-smooth);
 }
 
-.post-card::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.35s var(--transition-smooth);
-}
-
-.post-card:hover {
+.wiki-card:hover {
   transform: translateX(8px);
   border-color: var(--accent-primary);
   box-shadow: var(--shadow-hot);
 }
 
-.post-card:hover::after {
-  transform: scaleX(1);
-}
-
-.post-header {
+.wiki-card-meta {
   display: flex;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1rem;
+  color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
-.post-cat {
-  color: var(--accent-primary);
-  font-weight: 700;
-}
-
-.post-date {
-  display: flex;
+.wiki-cat,
+.wiki-date {
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: var(--text-secondary);
 }
 
-.post-title {
+.wiki-cat {
+  color: var(--accent-primary);
+  font-weight: 800;
+}
+
+.wiki-card h2 {
   font-size: clamp(1.35rem, 3vw, 1.95rem);
   line-height: 1.16;
-  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.wiki-card p {
+  color: var(--text-secondary);
   margin-bottom: 1.25rem;
 }
 
-.post-tags {
+.wiki-tags {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
 }
 
-.tag {
+.wiki-tags span {
   font-size: 0.75rem;
   padding: 0.24rem 0.6rem;
   color: var(--accent-secondary);
@@ -267,21 +255,16 @@ const filteredBlogs = () => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent-secondary);
-  transition: transform 0.25s var(--transition-smooth);
-}
-
-.post-card:hover .read-more {
-  transform: translateX(6px);
 }
 
 @media (max-width: 900px) {
-  .blog-layout {
+  .wiki-layout {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-  .blog-sidebar {
+  .wiki-sidebar {
     position: static;
   }
 }

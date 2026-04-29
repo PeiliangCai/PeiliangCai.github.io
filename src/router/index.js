@@ -36,6 +36,17 @@ const routes = [
     name: 'blog-post',
     component: () => import('../views/BlogPostView.vue'),
     props: true
+  },
+  {
+    path: '/wiki',
+    name: 'wiki',
+    component: () => import('../views/WikiView.vue')
+  },
+  {
+    path: '/wiki/:id',
+    name: 'wiki-post',
+    component: () => import('../views/WikiPostView.vue'),
+    props: true
   }
 ]
 

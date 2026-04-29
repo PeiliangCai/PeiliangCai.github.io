@@ -20,7 +20,7 @@ import siteData from '../data/site.json'
         </div>
         <div class="avatar-box glass">
           <img :src="siteData.avatarUrl" alt="Avatar" class="avatar-img" />
-          <span class="avatar-status geek-font">ONLINE</span>
+          <span v-if="siteData.avatarBadge" class="avatar-status geek-font">{{ siteData.avatarBadge }}</span>
         </div>
       </div>
       

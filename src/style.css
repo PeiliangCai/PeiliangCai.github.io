@@ -1,27 +1,27 @@
 @import "prismjs/themes/prism-tomorrow.css";
 
 :root {
-  --bg-darker: #020409;
-  --bg-dark: #070b14;
-  --bg-card: rgba(8, 13, 26, 0.78);
-  --bg-card-strong: rgba(10, 18, 35, 0.92);
-  --surface-panel: rgba(3, 7, 16, 0.62);
-  --surface-panel-soft: rgba(3, 7, 16, 0.34);
-  --surface-control: rgba(0, 0, 0, 0.18);
-  --surface-inset: rgba(0, 0, 0, 0.56);
-  --surface-media: #050812;
+  --bg-darker: #07101d;
+  --bg-dark: #0c1728;
+  --bg-card: rgba(16, 29, 51, 0.82);
+  --bg-card-strong: rgba(19, 34, 58, 0.94);
+  --surface-panel: rgba(15, 28, 49, 0.74);
+  --surface-panel-soft: rgba(18, 32, 55, 0.5);
+  --surface-control: rgba(255, 255, 255, 0.055);
+  --surface-inset: rgba(7, 15, 28, 0.68);
+  --surface-media: #0d192b;
   --text-on-accent: #031012;
   --text-primary: #f2fbff;
-  --text-secondary: #8fa6b8;
-  --text-muted: #5f7488;
+  --text-secondary: #a8bed0;
+  --text-muted: #7f96aa;
   --accent-primary: #00e5ff;
   --accent-secondary: #b6ff3b;
   --accent-tertiary: #ff3df2;
   --danger-glow: #ff3864;
   --border-color: rgba(0, 229, 255, 0.22);
   --border-hot: rgba(182, 255, 59, 0.38);
-  --glass-bg: rgba(255, 255, 255, 0.045);
-  --shadow-cyber: 0 24px 80px rgba(0, 0, 0, 0.42), 0 0 36px rgba(0, 229, 255, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.07);
+  --shadow-cyber: 0 24px 80px rgba(0, 0, 0, 0.32), 0 0 42px rgba(0, 229, 255, 0.1);
   --shadow-hot: 0 0 28px rgba(0, 229, 255, 0.24);
   --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -60,9 +60,9 @@
 body {
   font-family: 'Segoe UI', 'Aptos', -apple-system, BlinkMacSystemFont, sans-serif;
   background:
-    radial-gradient(circle at 18% 8%, rgba(0, 229, 255, 0.18), transparent 26rem),
-    radial-gradient(circle at 86% 18%, rgba(255, 61, 242, 0.12), transparent 24rem),
-    radial-gradient(circle at 52% 88%, rgba(182, 255, 59, 0.08), transparent 22rem),
+    radial-gradient(circle at 18% 8%, rgba(0, 229, 255, 0.24), transparent 27rem),
+    radial-gradient(circle at 86% 18%, rgba(255, 61, 242, 0.16), transparent 25rem),
+    radial-gradient(circle at 52% 88%, rgba(182, 255, 59, 0.1), transparent 23rem),
     linear-gradient(180deg, var(--bg-darker), var(--bg-dark) 54%, var(--bg-darker));
   color: var(--text-primary);
   line-height: 1.6;
@@ -76,19 +76,6 @@ body {
     radial-gradient(circle at 86% 16%, rgba(180, 20, 166, 0.08), transparent 24rem),
     radial-gradient(circle at 52% 88%, rgba(77, 124, 15, 0.1), transparent 22rem),
     linear-gradient(180deg, var(--bg-darker), var(--bg-dark) 54%, var(--bg-darker));
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(0, 229, 255, 0.065) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.052) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.78), transparent 82%);
 }
 
 body::after {
