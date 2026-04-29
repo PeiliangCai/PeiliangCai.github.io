@@ -1,0 +1,33 @@
+{
+  "header": {
+    "kicker": "RESEARCH NODE // SCHOLAR INDEX",
+    "name": "Peiliang Cai",
+    "affiliation": "Undergraduate Student @ Computer Science",
+    "links": [
+      {
+        "label": "Google Scholar",
+        "url": "#",
+        "icon": "quote"
+      },
+      {
+        "label": "DBLP",
+        "url": "#",
+        "icon": "book"
+      }
+    ]
+  },
+  "sectionTitle": "Selected Publications",
+  "papers": [
+    {
+      "id": 1,
+      "title": "Optimizing Retrieval-Augmented Generation with Agentic Self-Reflection Patterns",
+      "authors": ["Kaifeng He", "Xiaojun Zhang", "Peiliang Cai", "Mingwei Liu", "Yanlin Wang", "Chong Wang", "Kaifeng Huang", "Bihuan Chen", "Xin Peng", "Zibin Zheng"],
+      "coFirstAuthors": ["Kaifeng He", "Xiaojun Zhang", "Peiliang Cai"],
+      "status": "Under Review at ACM TOSEM",
+      "year": "2026",
+      "archImg": "./researchs/survey-overview.png",
+      "abstract": "A systematic review linking training data defects to generated code quality in Code LLMs, establishing a multi-dimensional taxonomy and causal mapping framework.",
+      "pdfUrl": "#"
+    }
+  ]
+}

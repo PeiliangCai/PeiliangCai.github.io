@@ -1,30 +1,54 @@
 @import "prismjs/themes/prism-tomorrow.css";
 
 :root {
-  /* Geek Palette */
-  --bg-darker: #05060b;
-  --bg-dark: #0a0b12;
-  --bg-card: rgba(18, 20, 32, 0.7);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent-primary: #6366f1; /* Indigo */
-  --accent-secondary: #10b981; /* Emerald/Terminal */
-  --border-color: rgba(99, 102, 241, 0.2);
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  
-  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --bg-darker: #020409;
+  --bg-dark: #070b14;
+  --bg-card: rgba(8, 13, 26, 0.78);
+  --bg-card-strong: rgba(10, 18, 35, 0.92);
+  --surface-panel: rgba(3, 7, 16, 0.62);
+  --surface-panel-soft: rgba(3, 7, 16, 0.34);
+  --surface-control: rgba(0, 0, 0, 0.18);
+  --surface-inset: rgba(0, 0, 0, 0.56);
+  --surface-media: #050812;
+  --text-on-accent: #031012;
+  --text-primary: #f2fbff;
+  --text-secondary: #8fa6b8;
+  --text-muted: #5f7488;
+  --accent-primary: #00e5ff;
+  --accent-secondary: #b6ff3b;
+  --accent-tertiary: #ff3df2;
+  --danger-glow: #ff3864;
+  --border-color: rgba(0, 229, 255, 0.22);
+  --border-hot: rgba(182, 255, 59, 0.38);
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --shadow-cyber: 0 24px 80px rgba(0, 0, 0, 0.42), 0 0 36px rgba(0, 229, 255, 0.08);
+  --shadow-hot: 0 0 28px rgba(0, 229, 255, 0.24);
+  --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme='light'] {
-  --bg-darker: #f8fafc;
-  --bg-dark: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.8);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --accent-primary: #4f46e5;
-  --accent-secondary: #059669;
-  --border-color: rgba(79, 70, 229, 0.1);
-  --glass-bg: rgba(0, 0, 0, 0.02);
+  --bg-darker: #eef7fb;
+  --bg-dark: #dfeef5;
+  --bg-card: rgba(255, 255, 255, 0.82);
+  --bg-card-strong: rgba(255, 255, 255, 0.94);
+  --surface-panel: rgba(255, 255, 255, 0.76);
+  --surface-panel-soft: rgba(255, 255, 255, 0.58);
+  --surface-control: rgba(255, 255, 255, 0.68);
+  --surface-inset: rgba(230, 244, 250, 0.86);
+  --surface-media: #e6f4fa;
+  --text-on-accent: #ffffff;
+  --text-primary: #07111f;
+  --text-secondary: #415569;
+  --text-muted: #6b7f91;
+  --accent-primary: #006d85;
+  --accent-secondary: #4d7c0f;
+  --accent-tertiary: #b414a6;
+  --danger-glow: #c0143c;
+  --border-color: rgba(0, 109, 133, 0.2);
+  --border-hot: rgba(77, 124, 15, 0.28);
+  --glass-bg: rgba(0, 109, 133, 0.045);
+  --shadow-cyber: 0 24px 70px rgba(22, 53, 72, 0.16), 0 0 34px rgba(0, 109, 133, 0.08);
+  --shadow-hot: 0 0 24px rgba(0, 109, 133, 0.16);
 }
 
 * {
@@ -34,41 +58,121 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  background-color: var(--bg-darker);
+  font-family: 'Segoe UI', 'Aptos', -apple-system, BlinkMacSystemFont, sans-serif;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(0, 229, 255, 0.18), transparent 26rem),
+    radial-gradient(circle at 86% 18%, rgba(255, 61, 242, 0.12), transparent 24rem),
+    radial-gradient(circle at 52% 88%, rgba(182, 255, 59, 0.08), transparent 22rem),
+    linear-gradient(180deg, var(--bg-darker), var(--bg-dark) 54%, var(--bg-darker));
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Hardcore Geek Typography */
+[data-theme='light'] body {
+  background:
+    radial-gradient(circle at 16% 8%, rgba(0, 109, 133, 0.14), transparent 25rem),
+    radial-gradient(circle at 86% 16%, rgba(180, 20, 166, 0.08), transparent 24rem),
+    radial-gradient(circle at 52% 88%, rgba(77, 124, 15, 0.1), transparent 22rem),
+    linear-gradient(180deg, var(--bg-darker), var(--bg-dark) 54%, var(--bg-darker));
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.052) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.78), transparent 82%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.028),
+    rgba(255, 255, 255, 0.028) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .geek-font {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
 .section-title {
-  font-size: 2.5rem;
-  font-weight: 800;
+  position: relative;
+  width: fit-content;
+  font-size: clamp(2.35rem, 6vw, 4.8rem);
+  font-weight: 900;
+  line-height: 0.95;
   margin-bottom: 2rem;
-  letter-spacing: -0.025em;
-  background: linear-gradient(to right, var(--text-primary), var(--accent-primary));
+  letter-spacing: 0;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-primary) 42%, var(--accent-tertiary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(0, 229, 255, 0.18));
 }
 
-/* Glassmorphism - Optimized blur for better transition performance */
+.section-title span {
+  -webkit-text-fill-color: var(--accent-secondary);
+}
+
 .glass {
-  background: var(--bg-card);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 34%),
+    var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-cyber);
 }
 
-/* Animations */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, var(--accent-primary), transparent 22%) top left / 100% 1px no-repeat,
+    linear-gradient(180deg, var(--accent-secondary), transparent 18%) top left / 1px 100% no-repeat;
+  opacity: 0.42;
+}
+
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -83,12 +187,12 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.86);
   z-index: 2000;
   display: flex;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
 }
 
 .modal-content {
@@ -106,7 +210,7 @@ body {
   background: var(--bg-darker);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: linear-gradient(var(--accent-primary), var(--accent-tertiary));
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -115,14 +219,15 @@ body {
 
 /* Markdown Highlighting Tweaks */
 pre[class*="language-"] {
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   border: 1px solid var(--border-color) !important;
   margin: 1.5rem 0 !important;
+  box-shadow: inset 0 0 32px rgba(0, 229, 255, 0.05) !important;
 }
 
 /* NProgress Customization */
 #nprogress .bar {
-  background: var(--accent-primary) !important;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary)) !important;
   height: 3px !important;
 }
 

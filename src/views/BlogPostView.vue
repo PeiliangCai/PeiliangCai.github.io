@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted, onUpdated } from 'vue'
-import { ArrowLeft, Calendar, Tag, Clipboard, Check } from 'lucide-vue-next'
+import { ref, watch, onUpdated } from 'vue'
+import { ArrowLeft } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import Prism from 'prismjs'
+import { createBlogLoadersById, parseFrontmatter } from '../utils/blog'
 
 // Prism components
 import 'prismjs/components/prism-python'
@@ -25,36 +26,15 @@ const md = new MarkdownIt({
 const post = ref(null)
 const htmlContent = ref('')
 const copied = ref({})
-
-// Utility: Lightweight frontmatter parser (Browser-safe)
-const parseFrontmatter = (content) => {
-  const fmRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/
-  const match = content.match(fmRegex)
-  if (!match) return { data: {}, content }
-  
-  const yamlStr = match[1]
-  const data = {}
-  yamlStr.split('\n').forEach(line => {
-    const [key, ...valParts] = line.split(':')
-    if (key && valParts.length > 0) {
-      let val = valParts.join(':').trim()
-      if (val.startsWith('[') && val.endsWith(']')) {
-        val = val.slice(1, -1).split(',').map(s => s.trim())
-      }
-      data[key.trim()] = val
-    }
-  })
-  
-  return { data, content: content.replace(fmRegex, '') }
-}
+const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
+const postsById = createBlogLoadersById(modules)
 
 const loadPost = async () => {
   try {
-    const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
-    const path = `../blogs/${props.id}.md`
+    const loader = postsById[props.id]
     
-    if (modules[path]) {
-      const rawContent = await modules[path]()
+    if (loader) {
+      const rawContent = await loader()
       const { data, content } = parseFrontmatter(rawContent)
       post.value = data
       htmlContent.value = md.render(content)
@@ -65,6 +45,8 @@ const loadPost = async () => {
         attachCopyButtons()
       }, 0)
     } else {
+      post.value = null
+      htmlContent.value = ''
       router.push('/blog')
     }
   } catch (e) {
@@ -92,7 +74,7 @@ const copyCode = (text, index) => {
   setTimeout(() => copied.value[index] = false, 2000)
 }
 
-onMounted(loadPost)
+watch(() => props.id, loadPost, { immediate: true })
 onUpdated(() => {
   Prism.highlightAll()
 })
@@ -125,9 +107,9 @@ const goBack = () => router.push('/blog')
 <style>
 /* ... same styles as before ... */
 .post-detail-container {
-  max-width: 800px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem 2rem 5rem;
 }
 
 .back-btn {
@@ -137,15 +119,22 @@ const goBack = () => router.push('/blog')
   color: var(--text-secondary);
   font-weight: 600;
   margin-bottom: 3rem;
-  transition: color 0.3s;
+  padding: 0.58rem 0.8rem;
+  width: fit-content;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: all 0.25s var(--transition-smooth);
 }
 
 .back-btn:hover {
   color: var(--accent-primary);
+  box-shadow: var(--shadow-hot);
 }
 
 .post-header {
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .post-header .meta {
@@ -154,7 +143,7 @@ const goBack = () => router.push('/blog')
 }
 
 .post-header .cat {
-  color: var(--accent-primary);
+  color: var(--accent-secondary);
   font-weight: 800;
 }
 
@@ -164,10 +153,11 @@ const goBack = () => router.push('/blog')
 }
 
 .post-header .title {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  font-weight: 950;
+  line-height: 0.98;
   margin-bottom: 1.5rem;
+  text-transform: uppercase;
 }
 
 .post-header .tag {
@@ -177,9 +167,9 @@ const goBack = () => router.push('/blog')
 }
 
 .markdown-body {
-  padding: 3rem;
+  padding: clamp(1.35rem, 4vw, 3rem);
   line-height: 1.8;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--text-primary);
 }
 
@@ -187,14 +177,18 @@ const goBack = () => router.push('/blog')
   margin-top: 2.5rem;
   margin-bottom: 1.5rem;
   font-weight: 800;
+  color: var(--accent-primary);
 }
 
 .markdown-body p {
   margin-bottom: 1.5rem;
+  color: var(--text-secondary);
 }
 
 .markdown-body code:not(pre code) {
-  background: var(--border-color);
+  color: var(--accent-secondary);
+  background: rgba(182, 255, 59, 0.08);
+  border: 1px solid rgba(182, 255, 59, 0.18);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   font-size: 0.9em;
@@ -202,17 +196,18 @@ const goBack = () => router.push('/blog')
 
 pre {
   position: relative;
+  overflow: auto;
 }
 
 .copy-btn {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  padding: 0.25rem 0.6rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.28rem 0.65rem;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #fff;
+  color: var(--accent-primary);
   font-size: 0.7rem;
   cursor: pointer;
   opacity: 0;
@@ -224,6 +219,13 @@ pre:hover .copy-btn {
 }
 
 .copy-btn:hover {
+  color: #020409;
   background: var(--accent-primary);
+}
+
+@media (max-width: 640px) {
+  .post-detail-container {
+    padding-inline: 1rem;
+  }
 }
 </style>

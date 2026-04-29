@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { EffectCoverflow, Pagination, Navigation } from 'swiper/modules'
-import { Github, ExternalLink, X, ChevronRight } from 'lucide-vue-next'
+import { Github, X, ChevronRight } from 'lucide-vue-next'
+import projectsData from '../data/projects.json'
 
 import 'swiper/css'
 import 'swiper/css/effect-coverflow'
@@ -10,39 +11,8 @@ import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 
 const modules = [EffectCoverflow, Pagination, Navigation]
-
-const coreProjects = [
-  {
-    id: 1,
-    title: 'Agentic RAG Engine',
-    desc: '基于多智能体协作的检索增强生成系统，支持动态规划与自我反思。',
-    tags: ['Python', 'LangChain', 'Vue 3'],
-    img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
-    details: {
-      logic: '通过递归式推理引擎替代传统的单次检索，大幅提升复杂问题的回答准确率。',
-      arch: 'Multi-Agent Orchestration -> Shared Memory -> Self-RAG loop',
-      videoUrl: '#'
-    }
-  },
-  {
-    id: 2,
-    title: 'Neo-Vite Dashboard',
-    desc: '自研的高性能前端监控与性能仪表盘，支持实时日志流分析。',
-    tags: ['Vite', 'Three.js', 'WebWorker'],
-    img: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=800',
-    details: {
-      logic: '利用 OffscreenCanvas 和 WebWorkers 处理高频数据渲染，确保 60FPS 的平滑体验。',
-      arch: 'Event Bus -> Data Processing Worker -> Canvas Renderer',
-      videoUrl: '#'
-    }
-  }
-]
-
-const otherProjects = [
-  { title: 'Mini-Search Engine', link: 'https://github.com' },
-  { title: 'Concurrent TCP Server', link: 'https://github.com' },
-  { title: 'Image Transformer', link: 'https://github.com' }
-]
+const coreProjects = projectsData.coreProjects
+const otherProjects = projectsData.otherProjects
 
 const selectedProject = ref(null)
 
@@ -58,7 +28,8 @@ const closeProject = () => {
 <template>
   <div class="portfolio-container animate-fade-in">
     <header class="page-header">
-      <h1 class="section-title">Core Projects<span>.</span></h1>
+      <p class="page-kicker geek-font">{{ projectsData.page.kicker }}</p>
+      <h1 class="section-title">{{ projectsData.page.title }}<span>.</span></h1>
     </header>
 
     <!-- Core Rotating Carousel -->
@@ -84,6 +55,7 @@ const closeProject = () => {
           <div class="card glass" @click="openProject(p)">
             <img :src="p.img" alt="Project cover" class="card-img" />
             <div class="card-overlay">
+              <span class="project-code geek-font">PROJECT_0{{ p.id }}</span>
               <h3>{{ p.title }}</h3>
               <div class="tags">
                 <span v-for="tag in p.tags" :key="tag">{{ tag }}</span>
@@ -138,16 +110,29 @@ const closeProject = () => {
 .portfolio-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem 2rem 5rem;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+
+.page-kicker {
+  color: var(--accent-secondary);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  margin-bottom: 0.75rem;
 }
 
 .swiper-wrapper {
-  padding: 4rem 0;
+  padding: 3rem 0 4.5rem;
+  border-block: 1px solid rgba(0, 229, 255, 0.1);
 }
 
 .project-slide {
-  width: 400px;
-  height: 500px;
+  width: min(410px, 76vw);
+  height: 520px;
 }
 
 .card {
@@ -155,14 +140,27 @@ const closeProject = () => {
   overflow: hidden;
   cursor: pointer;
   position: relative;
-  transition: transform 0.3s;
+  transition: transform 0.35s var(--transition-smooth), border-color 0.35s var(--transition-smooth);
+  background: var(--surface-media);
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  border-color: var(--border-hot);
 }
 
 .card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.6;
+  opacity: 0.52;
+  filter: saturate(1.2) contrast(1.15);
+  transition: transform 0.7s var(--transition-smooth), opacity 0.35s var(--transition-smooth);
+}
+
+.card:hover .card-img {
+  opacity: 0.66;
+  transform: scale(1.06);
 }
 
 .card-overlay {
@@ -171,12 +169,28 @@ const closeProject = () => {
   left: 0;
   width: 100%;
   padding: 2rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  color: #f2fbff;
+  background: linear-gradient(to top, rgba(2, 4, 9, 0.98), rgba(2, 4, 9, 0.62), transparent);
+}
+
+.project-code {
+  display: inline-flex;
+  margin-bottom: 0.8rem;
+  color: var(--accent-secondary);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
 }
 
 .card-overlay h3 {
-  font-size: 1.5rem;
+  font-size: 1.65rem;
+  line-height: 1.05;
   margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.card-overlay p {
+  color: #c8d7e2;
 }
 
 .tags {
@@ -187,10 +201,12 @@ const closeProject = () => {
 
 .tags span {
   font-size: 0.7rem;
-  padding: 0.2rem 0.5rem;
-  background: var(--accent-primary);
+  padding: 0.24rem 0.52rem;
+  color: var(--accent-primary);
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.2);
   border-radius: 4px;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .expand-btn {
@@ -201,9 +217,13 @@ const closeProject = () => {
   color: var(--accent-secondary);
   font-weight: bold;
   font-size: 0.9rem;
+  transition: transform 0.25s var(--transition-smooth);
 }
 
-/* Detail Panel */
+.card:hover .expand-btn {
+  transform: translateX(6px);
+}
+
 .detail-panel {
   position: relative;
   margin-top: 2rem;
@@ -221,6 +241,18 @@ const closeProject = () => {
   top: 1.5rem;
   right: 1.5rem;
   color: var(--text-secondary);
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  transition: all 0.25s var(--transition-smooth);
+}
+
+.close-panel:hover {
+  color: var(--danger-glow);
+  border-color: var(--danger-glow);
 }
 
 .panel-content {
@@ -241,19 +273,23 @@ const closeProject = () => {
 }
 
 .arch-box {
-  background: #000;
+  background: var(--surface-inset);
   padding: 1.5rem;
   border-radius: 8px;
-  border: 1px dashed var(--border-color);
+  border: 1px dashed var(--border-hot);
   font-size: 0.85rem;
   color: var(--accent-secondary);
+  overflow-wrap: anywhere;
 }
 
 .video-placeholder {
   width: 100%;
   aspect-ratio: 16/9;
-  background: #1a1b26;
-  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(0, 229, 255, 0.13), transparent),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04) 1px, transparent 1px, transparent 12px),
+    var(--surface-media);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,7 +297,6 @@ const closeProject = () => {
   border: 1px solid var(--border-color);
 }
 
-/* Other Works */
 .other-works {
   margin-top: 6rem;
 }
@@ -283,12 +318,15 @@ const closeProject = () => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  transition: all 0.3s;
+  min-height: 4.25rem;
+  transition: all 0.3s var(--transition-smooth);
 }
 
 .work-link:hover {
+  color: var(--accent-primary);
   border-color: var(--accent-primary);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hot);
 }
 
 @media (max-width: 900px) {
@@ -296,7 +334,8 @@ const closeProject = () => {
     grid-template-columns: 1fr;
   }
   .project-slide {
-    width: 300px;
+    width: min(330px, 82vw);
+    height: 460px;
   }
 }
 </style>

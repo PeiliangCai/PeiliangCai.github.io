@@ -1,48 +1,18 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Search, Tag, Calendar, ChevronRight } from 'lucide-vue-next'
+import { Search, Calendar, ChevronRight } from 'lucide-vue-next'
+import siteData from '../data/site.json'
+import { getCategoriesFromPosts, loadBlogSummaries } from '../utils/blog'
 
 const blogs = ref([])
-const categories = ref(['全部', '大模型工程', '前端架构', '踩坑记录'])
+const categories = ref(['全部'])
 const selectedCategory = ref('全部')
 const searchQuery = ref('')
 
-// Utility: Lightweight frontmatter parser (Browser-safe)
-const parseFrontmatter = (content) => {
-  const fmRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/
-  const match = content.match(fmRegex)
-  if (!match) return { data: {}, content }
-  
-  const yamlStr = match[1]
-  const data = {}
-  yamlStr.split('\n').forEach(line => {
-    const [key, ...valParts] = line.split(':')
-    if (key && valParts.length > 0) {
-      let val = valParts.join(':').trim()
-      // Basic array parsing [a, b, c]
-      if (val.startsWith('[') && val.endsWith(']')) {
-        val = val.slice(1, -1).split(',').map(s => s.trim())
-      }
-      data[key.trim()] = val
-    }
-  })
-  
-  return { data, content: content.replace(fmRegex, '') }
-}
-
 onMounted(async () => {
   const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
-  
-  // Load all raw content in parallel
-  const postPromises = Object.entries(modules).map(async ([path, loader]) => {
-    const rawContent = await loader()
-    const { data } = parseFrontmatter(rawContent)
-    const id = path.split('/').pop().replace('.md', '')
-    return data.title ? { id, ...data } : null
-  })
-  
-  const results = await Promise.all(postPromises)
-  blogs.value = results.filter(p => p !== null).sort((a, b) => new Date(b.date) - new Date(a.date))
+  blogs.value = await loadBlogSummaries(modules)
+  categories.value = getCategoriesFromPosts(blogs.value)
 })
 
 const filteredBlogs = () => {
@@ -57,7 +27,8 @@ const filteredBlogs = () => {
 <template>
   <div class="blog-container animate-fade-in">
     <header class="page-header">
-      <h1 class="section-title">Knowledge Base<span>.</span></h1>
+      <p class="page-kicker geek-font">{{ siteData.pages.blog.kicker }}</p>
+      <h1 class="section-title">{{ siteData.pages.blog.title }}<span>.</span></h1>
     </header>
 
     <div class="blog-layout">
@@ -115,12 +86,20 @@ const filteredBlogs = () => {
 .blog-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem 2rem 5rem;
+}
+
+.page-kicker {
+  color: var(--accent-secondary);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  margin-bottom: 0.75rem;
 }
 
 .blog-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 300px 1fr;
   gap: 4rem;
   margin-top: 3rem;
 }
@@ -129,13 +108,17 @@ const filteredBlogs = () => {
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
+  position: sticky;
+  top: 7rem;
+  align-self: start;
 }
 
 .search-box {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
+  padding: 0.9rem 1rem;
+  color: var(--accent-primary);
 }
 
 .search-box input {
@@ -144,6 +127,10 @@ const filteredBlogs = () => {
   color: var(--text-primary);
   outline: none;
   width: 100%;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
 }
 
 .filter-section h4 {
@@ -162,28 +149,48 @@ const filteredBlogs = () => {
 
 .cat-item {
   text-align: left;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
+  padding: 0.72rem 1rem;
+  border-radius: 6px;
   font-size: 0.9rem;
   color: var(--text-secondary);
-  transition: all 0.3s;
+  border: 1px solid transparent;
+  transition: all 0.25s var(--transition-smooth);
 }
 
 .cat-item:hover, .cat-item.active {
-  background: var(--border-color);
+  background: rgba(0, 229, 255, 0.07);
+  border-color: var(--border-color);
   color: var(--accent-primary);
 }
 
 .post-card {
   display: block;
-  padding: 2.5rem;
-  margin-bottom: 2rem;
+  position: relative;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
   transition: all 0.3s var(--transition-smooth);
 }
 
+.post-card::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--transition-smooth);
+}
+
 .post-card:hover {
-  transform: translateX(10px);
+  transform: translateX(8px);
   border-color: var(--accent-primary);
+  box-shadow: var(--shadow-hot);
+}
+
+.post-card:hover::after {
+  transform: scaleX(1);
 }
 
 .post-header {
@@ -206,7 +213,8 @@ const filteredBlogs = () => {
 }
 
 .post-title {
-  font-size: 1.75rem;
+  font-size: clamp(1.35rem, 3vw, 1.95rem);
+  line-height: 1.16;
   font-weight: 800;
   margin-bottom: 1.25rem;
 }
@@ -219,8 +227,9 @@ const filteredBlogs = () => {
 
 .tag {
   font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  background: var(--glass-bg);
+  padding: 0.24rem 0.6rem;
+  color: var(--accent-secondary);
+  background: rgba(182, 255, 59, 0.055);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
@@ -231,11 +240,20 @@ const filteredBlogs = () => {
   gap: 0.4rem;
   font-weight: 700;
   color: var(--accent-secondary);
+  transition: transform 0.25s var(--transition-smooth);
+}
+
+.post-card:hover .read-more {
+  transform: translateX(6px);
 }
 
 @media (max-width: 900px) {
   .blog-layout {
     grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .blog-sidebar {
+    position: static;
   }
 }
 </style>

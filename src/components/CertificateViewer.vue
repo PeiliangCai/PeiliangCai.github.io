@@ -13,20 +13,21 @@ const props = defineProps({
 const isOpen = ref(false)
 const canvasRef = ref(null)
 const isLoading = ref(false)
+const errorMessage = ref('')
 let pdfjsLib = null
 
 const openModal = async () => {
   isOpen.value = true
   isLoading.value = true
+  errorMessage.value = ''
   
   const isImage = /\.(jpg|jpeg|png|webp|svg)$/i.test(props.pdfUrl)
 
   try {
-    const canvas = canvasRef.value
     // Wait for DOM to render canvasRef
     await new Promise(r => setTimeout(r, 50))
     const ctx = canvasRef.value?.getContext('2d')
-    if (!ctx) return
+    if (!ctx) throw new Error('Canvas is not ready')
 
     if (isImage) {
       await renderImageToCanvas(ctx)
@@ -38,6 +39,7 @@ const openModal = async () => {
     addWatermark(ctx, canvasRef.value.width, canvasRef.value.height)
   } catch (error) {
     console.error('Error rendering certificate:', error)
+    errorMessage.value = '证书资源加载失败，请确认文件存在于 public/certs 目录。'
   } finally {
     isLoading.value = false
   }
@@ -59,7 +61,7 @@ const renderImageToCanvas = (ctx) => {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       resolve()
     }
-    img.onerror = () => reject(new Error('Image load failed'))
+    img.onerror = () => reject(new Error(`Image load failed: ${props.pdfUrl}`))
     img.src = props.pdfUrl
   })
 }
@@ -140,7 +142,7 @@ onUnmounted(() => {
     <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
       <div class="modal-container glass animate-fade-in">
         <header class="modal-header">
-          <h3>{{ title }} - 安全预览</h3>
+          <h3>{{ title }} - 预览</h3>
           <button @click="closeModal" class="close-btn"><X :size="20" /></button>
         </header>
         
@@ -149,8 +151,12 @@ onUnmounted(() => {
              <div class="spinner"></div>
              <span>SECURE RENDERING...</span>
           </div>
-          <canvas ref="canvasRef" class="pdf-canvas" v-show="!isLoading"></canvas>
-          <div class="security-overlay"></div>
+          <div v-if="errorMessage && !isLoading" class="error-box">
+            <strong>PREVIEW OFFLINE</strong>
+            <span>{{ errorMessage }}</span>
+          </div>
+          <canvas ref="canvasRef" class="pdf-canvas" v-show="!isLoading && !errorMessage"></canvas>
+          <div v-if="!errorMessage" class="security-overlay"></div>
         </div>
 
         <footer class="modal-footer">
@@ -166,21 +172,29 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 0;
+  padding: 0.7rem 0.9rem;
   cursor: pointer;
   width: fit-content;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--glass-bg);
+  transition: all 0.25s var(--transition-smooth);
 }
 
 .cert-title {
   font-size: 1rem;
   color: var(--text-primary);
-  border-bottom: 1px dashed var(--border-color);
   transition: all 0.3s;
+}
+
+.cert-text-item:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-hot);
+  transform: translateY(-2px);
 }
 
 .cert-text-item:hover .cert-title {
   color: var(--accent-primary);
-  border-bottom-color: var(--accent-primary);
 }
 
 .view-icon-btn {
@@ -200,7 +214,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.88);
   z-index: 2000;
   display: flex;
   justify-content: center;
@@ -211,10 +225,10 @@ onUnmounted(() => {
 .modal-container {
   width: 90%;
   max-width: 800px;
-  background: var(--bg-dark);
-  border-radius: 16px;
+  background: var(--bg-card-strong);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-cyber);
 }
 
 .modal-header {
@@ -223,6 +237,25 @@ onUnmounted(() => {
   align-items: center;
   padding: 1.25rem 2rem;
   border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  font-size: 0.95rem;
+}
+
+.close-btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.close-btn:hover {
+  color: var(--danger-glow);
+  border-color: var(--danger-glow);
 }
 
 .loader-box {
@@ -251,8 +284,26 @@ onUnmounted(() => {
   overflow-y: auto;
   display: flex;
   justify-content: center;
-  background: #000;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 229, 255, 0.05), rgba(0, 229, 255, 0.05) 1px, transparent 1px, transparent 14px),
+    var(--surface-media);
   padding: 1rem;
+}
+
+.error-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.error-box strong {
+  color: var(--danger-glow);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  letter-spacing: 0.12em;
 }
 
 .pdf-canvas {
@@ -274,7 +325,7 @@ onUnmounted(() => {
 
 .modal-footer {
   padding: 0.75rem;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.34);
   text-align: center;
 }
 

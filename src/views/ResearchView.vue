@@ -1,27 +1,20 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { BookText, ChevronDown, ChevronUp, ExternalLink, Quote } from 'lucide-vue-next'
+import researchData from '../data/research.json'
 
-const papers = [
-  {
-    id: 1,
-    title: 'Optimizing Retrieval-Augmented Generation with Agentic Self-Reflection Patterns',
-    authors: ['Peiliang Cai', 'Zhang San', 'Li Si'],
-    status: 'Under Review at ACM TOSEM',
-    year: '2024',
-    archImg: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=400',
-    abstract: '本文提出了一种新型的 Agentic RAG 框架，通过引入自我反思与动态规划机制，显著降低了幻觉率。实验结果表明，在复杂问答任务中准确率提升了 15.6%。'
-  },
-  {
-    id: 2,
-    title: 'A Survey on Modern Frontend Architectures for AI-Native Applications',
-    authors: ['Wang Wu', 'Peiliang Cai'],
-    status: 'Published in IEEE Software',
-    year: '2023',
-    archImg: 'https://images.unsplash.com/photo-1551288049-bbbda546697a?auto=format&fit=crop&q=80&w=400',
-    abstract: '探讨了在大模型时代，前端架构如何演进以适配高延迟、流式输出与本地推理等新特性。'
-  }
-]
+const iconMap = {
+  book: BookText,
+  quote: Quote
+}
+
+const papers = researchData.papers
+const validScholarLinks = computed(() => researchData.header.links.filter(link => link.url && link.url !== '#'))
+
+const hasValidPdf = (paper) => paper.pdfUrl && paper.pdfUrl !== '#'
+const getAuthorName = (author) => author.replace(/\*+$/, '')
+const isCoFirstAuthor = (paper, author) => paper.coFirstAuthors?.includes(getAuthorName(author)) || author.endsWith('*')
+const shouldHighlightAuthor = (author) => getAuthorName(author) === researchData.header.name
 
 const expandedAbstracts = ref(new Set())
 
@@ -45,24 +38,26 @@ const openImage = (url) => {
 <template>
   <div class="research-container animate-fade-in">
     <header class="academic-header">
-      <h1 class="scholar-name">Peiliang Cai</h1>
-      <p class="affiliation">Undergraduate Student @ Computer Science</p>
-      <div class="scholar-links">
-        <a href="#"><Quote :size="14" /> Google Scholar</a>
-        <a href="#"><BookText :size="14" /> DBLP</a>
+      <p class="lab-code geek-font">{{ researchData.header.kicker }}</p>
+      <h1 class="scholar-name">{{ researchData.header.name }}</h1>
+      <p class="affiliation">{{ researchData.header.affiliation }}</p>
+      <div v-if="validScholarLinks.length" class="scholar-links">
+        <a v-for="link in validScholarLinks" :key="link.label" :href="link.url" target="_blank">
+          <component :is="iconMap[link.icon] || ExternalLink" :size="14" /> {{ link.label }}
+        </a>
       </div>
     </header>
 
     <section class="publications">
-      <h3 class="section-subtitle">Selected Publications</h3>
+      <h3 class="section-subtitle">{{ researchData.sectionTitle }}</h3>
       
       <div class="paper-card" v-for="paper in papers" :key="paper.id">
         <div class="paper-main">
           <div class="paper-content">
             <h4 class="paper-title">{{ paper.title }}</h4>
             <div class="authors">
-              <span v-for="(author, idx) in paper.authors" :key="author" :class="{ 'me': author === 'Peiliang Cai' }">
-                {{ author }}{{ idx < paper.authors.length - 1 ? ', ' : '' }}
+              <span v-for="(author, idx) in paper.authors" :key="author" :class="{ 'me': shouldHighlightAuthor(author) }">
+                {{ getAuthorName(author) }}<sup v-if="isCoFirstAuthor(paper, author)">*</sup>{{ idx < paper.authors.length - 1 ? ', ' : '' }}
               </span>
             </div>
             <div class="paper-meta">
@@ -76,7 +71,7 @@ const openImage = (url) => {
                 <ChevronDown v-if="!expandedAbstracts.has(paper.id)" :size="16" />
                 <ChevronUp v-else :size="16" />
               </button>
-              <a href="#" class="action-btn"><ExternalLink :size="16" /> PDF</a>
+              <a v-if="hasValidPdf(paper)" :href="paper.pdfUrl" target="_blank" class="action-btn"><ExternalLink :size="16" /> PDF</a>
             </div>
           </div>
 
@@ -107,21 +102,37 @@ const openImage = (url) => {
 
 <style scoped>
 .research-container {
-  max-width: 900px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem 2rem 5rem;
 }
 
 .academic-header {
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 2rem;
+  position: relative;
+  padding: 2rem;
   margin-bottom: 4rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(0, 229, 255, 0.09), transparent 42%),
+    var(--surface-panel);
+  box-shadow: var(--shadow-cyber);
+}
+
+.lab-code {
+  color: var(--accent-secondary);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  margin-bottom: 1rem;
 }
 
 .scholar-name {
-  font-size: 2.25rem;
-  font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  font-weight: 950;
+  line-height: 0.92;
   margin-bottom: 0.5rem;
+  text-transform: uppercase;
 }
 
 .affiliation {
@@ -142,20 +153,42 @@ const openImage = (url) => {
   font-size: 0.85rem;
   color: var(--accent-primary);
   font-weight: 600;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--surface-control);
+  transition: all 0.25s var(--transition-smooth);
+}
+
+.scholar-links a:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-hot);
 }
 
 .section-subtitle {
   font-size: 1.25rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-secondary);
-  border-left: 4px solid var(--accent-primary);
+  color: var(--accent-primary);
+  border-left: 4px solid var(--accent-secondary);
   padding-left: 1rem;
   margin-bottom: 2.5rem;
+  letter-spacing: 0.08em;
 }
 
 .paper-card {
   margin-bottom: 3rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  border-radius: 8px;
+  background: var(--surface-panel-soft);
+  transition: all 0.3s var(--transition-smooth);
+}
+
+.paper-card:hover {
+  border-color: var(--border-color);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-cyber);
 }
 
 .paper-main {
@@ -169,7 +202,7 @@ const openImage = (url) => {
 }
 
 .paper-title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.4;
   margin-bottom: 0.5rem;
@@ -184,8 +217,7 @@ const openImage = (url) => {
 
 .me {
   font-weight: 800;
-  text-decoration: underline;
-  color: var(--text-primary);
+  color: var(--accent-secondary);
 }
 
 .paper-meta {
@@ -195,9 +227,10 @@ const openImage = (url) => {
 }
 
 .status-tag {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(0, 229, 255, 0.08);
   color: var(--accent-primary);
-  padding: 0.1rem 0.5rem;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  padding: 0.16rem 0.55rem;
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 700;
@@ -222,17 +255,18 @@ const openImage = (url) => {
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
   border: 1px solid var(--border-color);
-  transition: all 0.3s;
+  transition: all 0.25s var(--transition-smooth);
 }
 
 .action-btn:hover {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
+  box-shadow: var(--shadow-hot);
 }
 
 .paper-visual {
-  width: 150px;
-  height: 100px;
+  width: 180px;
+  height: 118px;
   border-radius: 8px;
   overflow: hidden;
   position: relative;
@@ -253,7 +287,7 @@ const openImage = (url) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.72);
   color: white;
   font-size: 0.6rem;
   display: flex;
@@ -277,12 +311,14 @@ const openImage = (url) => {
   font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.8;
+  background: rgba(0, 229, 255, 0.045);
 }
 
 .large-img {
   max-width: 80vw;
   max-height: 80vh;
-  border-radius: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 @media (max-width: 600px) {
@@ -292,6 +328,9 @@ const openImage = (url) => {
   .paper-visual {
     width: 100%;
     height: 150px;
+  }
+  .scholar-links {
+    flex-wrap: wrap;
   }
 }
 </style>

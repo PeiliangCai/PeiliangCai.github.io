@@ -1,0 +1,12 @@
+{
+  "avatarUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=Peiliang&backgroundColor=6366f1",
+  "pages": {
+    "home": {
+      "kicker": "SYSU // AGENTIC RAG // AI-NATIVE SYSTEMS"
+    },
+    "blog": {
+      "kicker": "KNOWLEDGE BASE // FIELD NOTES",
+      "title": "Knowledge Base"
+    }
+  }
+}
