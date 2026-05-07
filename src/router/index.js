@@ -43,6 +43,12 @@ const routes = [
     component: () => import('../views/WikiView.vue')
   },
   {
+    path: '/wiki/:topic/:id',
+    name: 'wiki-topic-post',
+    component: () => import('../views/WikiPostView.vue'),
+    props: true
+  },
+  {
     path: '/wiki/:id',
     name: 'wiki-post',
     component: () => import('../views/WikiPostView.vue'),

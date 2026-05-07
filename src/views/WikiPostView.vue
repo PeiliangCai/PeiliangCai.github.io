@@ -4,7 +4,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import Prism from 'prismjs'
-import { createBlogLoadersById, parseFrontmatter } from '../utils/blog'
+import { createWikiLoadersByRoutePath, parseFrontmatter } from '../utils/blog'
 
 import 'prismjs/components/prism-python'
 import 'prismjs/components/prism-javascript'
@@ -12,7 +12,8 @@ import 'prismjs/components/prism-css'
 import 'prismjs/components/prism-bash'
 
 const props = defineProps({
-  id: String
+  id: String,
+  topic: String
 })
 
 const router = useRouter()
@@ -24,12 +25,13 @@ const md = new MarkdownIt({
 
 const page = ref(null)
 const htmlContent = ref('')
-const modules = import.meta.glob('../wiki/*.md', { query: '?raw', import: 'default' })
-const pagesById = createBlogLoadersById(modules)
+const modules = import.meta.glob('../wiki/**/*.md', { query: '?raw', import: 'default' })
+const pagesByRoutePath = createWikiLoadersByRoutePath(modules)
 
 const loadPage = async () => {
   try {
-    const loader = pagesById[props.id]
+    const routePath = props.topic ? `${props.topic}/${props.id}` : props.id
+    const loader = pagesByRoutePath[routePath]
     if (!loader) {
       page.value = null
       htmlContent.value = ''
@@ -48,7 +50,7 @@ const loadPage = async () => {
   }
 }
 
-watch(() => props.id, loadPage, { immediate: true })
+watch(() => `${props.topic || ''}/${props.id || ''}`, loadPage, { immediate: true })
 onUpdated(() => {
   Prism.highlightAll()
 })

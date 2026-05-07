@@ -21,8 +21,31 @@ export const parseFrontmatter = (content) => {
 
 export const getBlogIdFromPath = (path) => path.split('/').pop().replace('.md', '')
 
+export const getWikiMetaFromPath = (path) => {
+  const segments = path.split('/')
+  const filename = segments[segments.length - 1] || ''
+  const id = filename.replace('.md', '')
+  const wikiIndex = segments.lastIndexOf('wiki')
+  const topic = wikiIndex !== -1 && segments.length > wikiIndex + 2
+    ? segments[wikiIndex + 1]
+    : ''
+
+  return {
+    id,
+    topic,
+    routePath: topic ? `${topic}/${id}` : id,
+    isSystemPage: id === 'index' || id === 'log'
+  }
+}
+
 export const createBlogLoadersById = (modules) => Object.fromEntries(
   Object.entries(modules).map(([path, loader]) => [getBlogIdFromPath(path), loader])
+)
+
+export const createWikiLoadersByRoutePath = (modules) => Object.fromEntries(
+  Object.entries(modules)
+    .filter(([path]) => !getWikiMetaFromPath(path).isSystemPage)
+    .map(([path, loader]) => [getWikiMetaFromPath(path).routePath, loader])
 )
 
 export const loadBlogSummaries = async (modules) => {
@@ -37,6 +60,22 @@ export const loadBlogSummaries = async (modules) => {
   return results
     .filter(p => p !== null)
     .sort((a, b) => new Date(b.date) - new Date(a.date))
+}
+
+export const loadWikiSummaries = async (modules) => {
+  const pagePromises = Object.entries(modules)
+    .filter(([path]) => !getWikiMetaFromPath(path).isSystemPage)
+    .map(async ([path, loader]) => {
+      const rawContent = await loader()
+      const { data } = parseFrontmatter(rawContent)
+      const meta = getWikiMetaFromPath(path)
+      return data.title ? { ...meta, ...data } : null
+    })
+
+  const results = await Promise.all(pagePromises)
+  return results
+    .filter(page => page !== null)
+    .sort((a, b) => new Date(b.updated || b.date || 0) - new Date(a.updated || a.date || 0))
 }
 
 export const loadMarkdownSummaries = loadBlogSummaries

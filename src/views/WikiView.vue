@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { BookOpen, Calendar, ChevronRight, Search } from 'lucide-vue-next'
-import { getCategoriesFromPosts, loadMarkdownSummaries } from '../utils/blog'
+import { getCategoriesFromPosts, loadWikiSummaries } from '../utils/blog'
 
 const pages = ref([])
 const categories = ref(['全部'])
@@ -9,10 +9,12 @@ const selectedCategory = ref('全部')
 const searchQuery = ref('')
 
 onMounted(async () => {
-  const modules = import.meta.glob('../wiki/*.md', { query: '?raw', import: 'default' })
-  pages.value = await loadMarkdownSummaries(modules)
+  const modules = import.meta.glob('../wiki/**/*.md', { query: '?raw', import: 'default' })
+  pages.value = await loadWikiSummaries(modules)
   categories.value = getCategoriesFromPosts(pages.value)
 })
+
+const getWikiLink = (page) => page.topic ? `/wiki/${page.topic}/${page.id}` : `/wiki/${page.id}`
 
 const filteredPages = () => pages.value.filter(page => {
   const query = searchQuery.value.toLowerCase()
@@ -61,8 +63,8 @@ const filteredPages = () => pages.value.filter(page => {
 
         <router-link
           v-for="page in filteredPages()"
-          :key="page.id"
-          :to="`/wiki/${page.id}`"
+          :key="page.routePath"
+          :to="getWikiLink(page)"
           class="wiki-card glass"
         >
           <div class="wiki-card-meta">
