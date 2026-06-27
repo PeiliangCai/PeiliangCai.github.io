@@ -3,6 +3,7 @@ title: 深入理解 Agentic RAG：从理论到落地
 date: 2024-04-14
 category: 大模型工程
 tags: [RAG, AI-Agent, LLM]
+summary: 从检索增强生成的局限出发，介绍 Agentic RAG 如何把检索、规划、工具调用和反馈闭环结合起来。
 ---
 
 # 深入理解 Agentic RAG：从理论到落地

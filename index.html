@@ -2,13 +2,44 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
+    <link rel="canonical" href="https://peiliangcai.github.io/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Personal Blog | 个人博客</title>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Cai Peiliang (蔡沛良) | Sun Yat-sen University</title>
+    <meta
+      name="description"
+      content="Cai Peiliang (蔡沛良), Software Engineering student at Sun Yat-sen University. Portfolio, research notes, Agentic RAG projects, AI agents, and technical writing."
+    />
+    <meta name="author" content="Cai Peiliang" />
+    <meta name="theme-color" content="#07101d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://peiliangcai.github.io/" />
+    <meta property="og:title" content="Cai Peiliang (蔡沛良) | Portfolio & Knowledge Base" />
+    <meta
+      property="og:description"
+      content="Software Engineering @ SYSU. Researching Agentic RAG, AI Agents, and AI-native systems."
+    />
+    <meta property="og:image" content="/avatar2.jpg" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Cai Peiliang (蔡沛良) | Portfolio & Knowledge Base" />
+    <meta
+      name="twitter:description"
+      content="Software Engineering @ SYSU. Researching Agentic RAG, AI Agents, and AI-native systems."
+    />
+    <meta name="twitter:image" content="/avatar2.jpg" />
+    <script>
+      ;(() => {
+        try {
+          const savedTheme = localStorage.getItem('theme')
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const theme = savedTheme || (prefersDark ? 'dark' : 'light')
+          document.documentElement.setAttribute('data-theme', theme)
+        } catch (error) {
+          document.documentElement.setAttribute('data-theme', 'dark')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

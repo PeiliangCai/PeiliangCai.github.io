@@ -1,8 +1,31 @@
 <script setup>
-import { Github, MapPin, Mail, Sparkles } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { Github, Mail, MapPin, Sparkles } from 'lucide-vue-next'
 import CertificateViewer from '../components/CertificateViewer.vue'
 import profileData from '../data/profile.json'
 import siteData from '../data/site.json'
+
+const introSegments = computed(() => {
+  const advisor = profileData.advisor
+
+  return profileData.intro.map((paragraph) => {
+    if (!advisor?.name || !advisor?.url || !paragraph.includes(advisor.name)) {
+      return [{ text: paragraph }]
+    }
+
+    const segments = []
+    const parts = paragraph.split(advisor.name)
+
+    parts.forEach((part, index) => {
+      if (part) segments.push({ text: part })
+      if (index < parts.length - 1) {
+        segments.push({ text: advisor.name, href: advisor.url })
+      }
+    })
+
+    return segments
+  })
+})
 </script>
 
 <template>
@@ -16,22 +39,41 @@ import siteData from '../data/site.json'
             <span class="hero-name-en">{{ profileData.name }}</span>
             <span v-if="profileData.nameCn" class="hero-name-cn">{{ profileData.nameCn }}</span>
           </h1>
-          <p class="tagline geek-font">$ {{ profileData.tagline }}</p>
+          <p class="tagline geek-font">{{ profileData.tagline }}</p>
+          <p v-if="profileData.summaryCn" class="tagline-cn">{{ profileData.summaryCn }}</p>
+          <div v-if="profileData.focusAreas?.length" class="focus-strip">
+            <span v-for="area in profileData.focusAreas" :key="area">{{ area }}</span>
+          </div>
         </div>
         <div class="avatar-box glass">
-          <img :src="siteData.avatarUrl" alt="Avatar" class="avatar-img" />
+          <img :src="siteData.avatarUrl" alt="Cai Peiliang portrait" class="avatar-img" decoding="async" />
           <span v-if="siteData.avatarBadge" class="avatar-status geek-font">{{ siteData.avatarBadge }}</span>
         </div>
       </div>
       
       <div class="bio-intro">
-        <p v-for="(p, i) in profileData.intro" :key="i" class="intro-p" v-html="p"></p>
+        <p v-for="(segments, i) in introSegments" :key="i" class="intro-p">
+          <template v-for="(segment, segmentIndex) in segments" :key="`${i}-${segmentIndex}`">
+            <a
+              v-if="segment.href"
+              :href="segment.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="intro-link"
+            >
+              {{ segment.text }}
+            </a>
+            <span v-else>{{ segment.text }}</span>
+          </template>
+        </p>
       </div>
 
       <div class="quick-contact">
         <span class="contact-item"><MapPin :size="14" /> {{ profileData.contact.location }}</span>
-        <span class="contact-item"><Mail :size="14" /> {{ profileData.contact.email }}</span>
-        <a :href="'https://' + profileData.contact.github" target="_blank" class="contact-item link">
+        <a :href="`mailto:${profileData.contact.email}`" class="contact-item link">
+          <Mail :size="14" /> {{ profileData.contact.email }}
+        </a>
+        <a :href="'https://' + profileData.contact.github" target="_blank" rel="noopener noreferrer" class="contact-item link">
           <Github :size="14" /> {{ profileData.contact.github }}
         </a>
       </div>
@@ -51,7 +93,7 @@ import siteData from '../data/site.json'
               </div>
               <span class="period-v geek-font">{{ edu.period }}</span>
             </div>
-            <p class="honors-v">{{ edu.honors }}</p>
+            <p v-if="edu.honors" class="honors-v">{{ edu.honors }}</p>
           </div>
         </div>
       </section>
@@ -186,6 +228,31 @@ import siteData from '../data/site.json'
   max-width: 620px;
 }
 
+.tagline-cn {
+  max-width: 700px;
+  margin-top: 0.85rem;
+  color: var(--text-secondary);
+  font-size: clamp(0.98rem, 2vw, 1.12rem);
+  line-height: 1.75;
+}
+
+.focus-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.25rem;
+}
+
+.focus-strip span {
+  padding: 0.34rem 0.62rem;
+  color: var(--accent-primary);
+  background: rgba(0, 229, 255, 0.07);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: 5px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .avatar-box {
   width: clamp(126px, 18vw, 170px);
   height: clamp(126px, 18vw, 170px);
@@ -228,6 +295,17 @@ import siteData from '../data/site.json'
   line-height: 1.9;
   color: var(--text-secondary);
   margin-bottom: 1rem;
+}
+
+.intro-link {
+  color: var(--accent-primary);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.38);
+  transition: color 0.2s var(--transition-smooth), border-color 0.2s var(--transition-smooth);
+}
+
+.intro-link:hover {
+  color: var(--accent-secondary);
+  border-color: rgba(182, 255, 59, 0.52);
 }
 
 .quick-contact {

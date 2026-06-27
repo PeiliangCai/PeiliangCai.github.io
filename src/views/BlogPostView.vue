@@ -1,128 +1,160 @@
 <script setup>
-import { ref, watch, onUpdated } from 'vue'
-import { ArrowLeft } from 'lucide-vue-next'
+import { nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import MarkdownIt from 'markdown-it'
-import Prism from 'prismjs'
 import { createBlogLoadersById, parseFrontmatter } from '../utils/blog'
-
-// Prism components
-import 'prismjs/components/prism-python'
-import 'prismjs/components/prism-javascript'
-import 'prismjs/components/prism-css'
-import 'prismjs/components/prism-bash'
+import { enhanceMarkdownRoot, renderMarkdown } from '../utils/markdown'
 
 const props = defineProps({
   id: String
 })
 
 const router = useRouter()
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true
-})
-
 const post = ref(null)
 const htmlContent = ref('')
-const copied = ref({})
+const headings = ref([])
+const contentRoot = ref(null)
+const isTocOpen = ref(false)
+const isPageActive = ref(true)
 const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
 const postsById = createBlogLoadersById(modules)
 
+const enhanceContent = async () => {
+  await nextTick()
+  enhanceMarkdownRoot(contentRoot.value)
+}
+
 const loadPost = async () => {
   try {
-    const loader = postsById[props.id]
-    
-    if (loader) {
-      const rawContent = await loader()
-      const { data, content } = parseFrontmatter(rawContent)
-      post.value = data
-      htmlContent.value = md.render(content)
-      
-      // Highlight code after next tick
-      setTimeout(() => {
-        Prism.highlightAll()
-        attachCopyButtons()
-      }, 0)
-    } else {
+    const entry = postsById[props.id]
+
+    if (!entry) {
       post.value = null
       htmlContent.value = ''
+      headings.value = []
       router.push('/blog')
+      return
     }
-  } catch (e) {
-    console.error('Error loading post:', e)
+
+    const rawContent = await entry.loader()
+    const { data, content } = parseFrontmatter(rawContent)
+    const rendered = renderMarkdown(content, { sourcePath: entry.path })
+
+    post.value = data
+    htmlContent.value = rendered.html
+    headings.value = rendered.headings
+    isTocOpen.value = false
+    await enhanceContent()
+  } catch (error) {
+    console.error('Error loading post:', error)
     router.push('/blog')
   }
 }
 
-const attachCopyButtons = () => {
-  const preBlocks = document.querySelectorAll('pre')
-  preBlocks.forEach((pre, index) => {
-    if (pre.querySelector('.copy-btn')) return
-    
-    const btn = document.createElement('button')
-    btn.className = 'copy-btn'
-    btn.innerHTML = 'Copy'
-    btn.onclick = () => copyCode(pre.textContent, index)
-    pre.appendChild(btn)
-  })
-}
-
-const copyCode = (text, index) => {
-  navigator.clipboard.writeText(text.replace('Copy', '').trim())
-  copied.value[index] = true
-  setTimeout(() => copied.value[index] = false, 2000)
-}
-
 watch(() => props.id, loadPost, { immediate: true })
-onUpdated(() => {
-  Prism.highlightAll()
+
+onActivated(() => {
+  isPageActive.value = true
 })
+
+onDeactivated(() => {
+  isPageActive.value = false
+  isTocOpen.value = false
+})
+
+const closeToc = () => {
+  isTocOpen.value = false
+}
 
 const goBack = () => router.push('/blog')
 </script>
 
 <template>
   <div v-if="post" class="post-detail-container animate-fade-in">
-    <button @click="goBack" class="back-btn">
-      <ArrowLeft :size="20" /> Back to Feed
-    </button>
-
-    <header class="post-header">
+    <header class="post-hero">
       <div class="meta geek-font">
-        <span class="cat">{{ post.category }}</span>
-        <span class="sep">/</span>
-        <span class="date">{{ post.date }}</span>
+        <span class="cat">{{ post.category || 'Article' }}</span>
+        <span v-if="post.date" class="sep">/</span>
+        <span v-if="post.date" class="date">{{ post.date }}</span>
       </div>
       <h1 class="title">{{ post.title }}</h1>
+      <p v-if="post.summary" class="summary">{{ post.summary }}</p>
       <div class="tags">
         <span v-for="tag in post.tags || []" :key="tag" class="tag">#{{ tag }}</span>
       </div>
     </header>
 
-    <div class="markdown-body glass" v-html="htmlContent"></div>
+    <div class="content-layout">
+      <article ref="contentRoot" class="markdown-body glass" v-html="htmlContent"></article>
+    </div>
   </div>
+
+  <teleport to="body">
+    <button v-if="post && isPageActive" @click="goBack" class="back-btn" type="button">
+      <ArrowLeft :size="20" /> Back to Feed
+    </button>
+
+    <button
+      v-if="post && isPageActive && headings.length"
+      class="toc-toggle"
+      :class="{ 'is-open': isTocOpen }"
+      type="button"
+      aria-controls="article-toc"
+      :aria-expanded="isTocOpen"
+      :aria-label="isTocOpen ? 'Hide table of contents' : 'Show table of contents'"
+      @click="isTocOpen = !isTocOpen"
+    >
+      <ChevronRight v-if="isTocOpen" :size="18" />
+      <ChevronLeft v-else :size="18" />
+    </button>
+
+    <aside
+      v-if="post && isPageActive && headings.length"
+      id="article-toc"
+      class="markdown-toc glass"
+      :class="{ 'is-open': isTocOpen }"
+      aria-label="Table of contents"
+    >
+      <div class="toc-title geek-font">ON THIS PAGE</div>
+      <a
+        v-for="heading in headings"
+        :key="heading.id"
+        :href="`#${heading.id}`"
+        :class="`level-${heading.level}`"
+        @click="closeToc"
+      >
+        {{ heading.title }}
+      </a>
+    </aside>
+  </teleport>
 </template>
 
-<style>
-/* ... same styles as before ... */
+<style scoped>
 .post-detail-container {
-  max-width: 860px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 3rem 2rem 5rem;
 }
 
 .back-btn {
-  display: flex;
+  --floating-bottom: max(1rem, env(safe-area-inset-bottom));
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: var(--floating-bottom);
+  z-index: 1200;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  margin-bottom: 3rem;
-  padding: 0.58rem 0.8rem;
   width: fit-content;
+  padding: 0.58rem 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 700;
   border: 1px solid var(--border-color);
   border-radius: 6px;
+  background: var(--bg-card-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.2);
   transition: all 0.25s var(--transition-smooth);
 }
 
@@ -131,61 +163,175 @@ const goBack = () => router.push('/blog')
   box-shadow: var(--shadow-hot);
 }
 
-.post-header {
+.post-hero {
+  max-width: 860px;
   margin-bottom: 3rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid var(--border-color);
 }
 
-.post-header .meta {
-  font-size: 0.85rem;
+.meta {
   margin-bottom: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
 }
 
-.post-header .cat {
+.cat {
   color: var(--accent-secondary);
-  font-weight: 800;
+  font-weight: 900;
 }
 
-.post-header .sep {
+.sep {
   margin: 0 0.75rem;
   opacity: 0.3;
 }
 
-.post-header .title {
-  font-size: clamp(2.2rem, 6vw, 4.2rem);
+.title {
+  margin-bottom: 1.35rem;
+  font-size: clamp(2.05rem, 6vw, 4rem);
   font-weight: 950;
-  line-height: 0.98;
-  margin-bottom: 1.5rem;
-  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
-.post-header .tag {
-  font-size: 0.9rem;
+.summary {
+  max-width: 780px;
+  margin-bottom: 1.25rem;
   color: var(--text-secondary);
-  margin-right: 1rem;
-}
-
-.markdown-body {
-  padding: clamp(1.35rem, 4vw, 3rem);
-  line-height: 1.8;
   font-size: 1.05rem;
-  color: var(--text-primary);
+  line-height: 1.8;
 }
 
-.markdown-body h1, .markdown-body h2, .markdown-body h3 {
-  margin-top: 2.5rem;
-  margin-bottom: 1.5rem;
-  font-weight: 800;
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.tag {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.content-layout {
+  max-width: 860px;
+}
+
+.markdown-toc {
+  position: fixed;
+  top: 7rem;
+  right: max(1rem, env(safe-area-inset-right));
+  z-index: 880;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 270px;
+  max-height: calc(100vh - 8.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) transparent;
+}
+
+.toc-toggle {
+  display: none;
+}
+
+.toc-title {
+  color: var(--accent-secondary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.markdown-toc a {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  transition: color 0.2s var(--transition-smooth);
+}
+
+.markdown-toc a:hover {
   color: var(--accent-primary);
 }
 
-.markdown-body p {
-  margin-bottom: 1.5rem;
+.markdown-toc .level-3 {
+  padding-left: 0.8rem;
+  font-size: 0.78rem;
+  opacity: 0.86;
+}
+
+.markdown-body {
+  min-width: 0;
+  padding: clamp(1.35rem, 4vw, 3rem);
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  line-height: 1.85;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3) {
+  scroll-margin-top: 7rem;
+  margin-top: 2.6rem;
+  margin-bottom: 1.3rem;
+  color: var(--accent-primary);
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.markdown-body :deep(h1:first-child) {
+  margin-top: 0;
+}
+
+.markdown-body :deep(p),
+.markdown-body :deep(li) {
   color: var(--text-secondary);
 }
 
-.markdown-body code:not(pre code) {
+.markdown-body :deep(p),
+.markdown-body :deep(ul),
+.markdown-body :deep(ol),
+.markdown-body :deep(blockquote),
+.markdown-body :deep(table) {
+  margin-bottom: 1.5rem;
+}
+
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  padding-left: 1.5rem;
+}
+
+.markdown-body :deep(a) {
+  color: var(--accent-primary);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.35);
+}
+
+.markdown-body :deep(img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-media);
+}
+
+.markdown-body :deep(table) {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.markdown-body :deep(th),
+.markdown-body :deep(td) {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border-color);
+}
+
+.markdown-body :deep(code:not(pre code)) {
   color: var(--accent-secondary);
   background: rgba(182, 255, 59, 0.08);
   border: 1px solid rgba(182, 255, 59, 0.18);
@@ -194,38 +340,105 @@ const goBack = () => router.push('/blog')
   font-size: 0.9em;
 }
 
-pre {
+.markdown-body :deep(pre) {
   position: relative;
   overflow: auto;
 }
 
-.copy-btn {
+.markdown-body :deep(.copy-btn) {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0.55rem;
+  right: 0.55rem;
   padding: 0.28rem 0.65rem;
+  color: var(--accent-primary);
   background: rgba(0, 229, 255, 0.08);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: var(--accent-primary);
   font-size: 0.7rem;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s var(--transition-smooth), background 0.2s var(--transition-smooth);
 }
 
-pre:hover .copy-btn {
+.markdown-body :deep(pre:hover .copy-btn),
+.markdown-body :deep(.copy-btn:focus-visible) {
   opacity: 1;
 }
 
-.copy-btn:hover {
+.markdown-body :deep(.copy-btn:hover) {
   color: #020409;
   background: var(--accent-primary);
+}
+
+@media (max-width: 1280px) {
+  .markdown-toc {
+    --toc-drawer-width: min(22rem, calc(100vw - 3.5rem));
+    top: 6rem;
+    right: 0;
+    width: var(--toc-drawer-width);
+    max-height: calc(100vh - 7.25rem);
+    border-radius: 8px 0 0 8px;
+    transform: translateX(calc(100% + 0.75rem));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform 0.28s var(--transition-smooth),
+      opacity 0.2s var(--transition-smooth);
+  }
+
+  .markdown-toc.is-open {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .toc-toggle {
+    --toc-drawer-width: min(22rem, calc(100vw - 3.5rem));
+    position: fixed;
+    top: 50%;
+    right: 0;
+    z-index: 930;
+    display: grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 3.1rem;
+    color: var(--accent-primary);
+    background: var(--bg-card-strong);
+    border: 1px solid var(--border-color);
+    border-right: 0;
+    border-radius: 6px 0 0 6px;
+    box-shadow: var(--shadow-cyber);
+    transform: translateY(-50%);
+    transition:
+      right 0.28s var(--transition-smooth),
+      color 0.2s var(--transition-smooth),
+      border-color 0.2s var(--transition-smooth);
+  }
+
+  .toc-toggle:hover {
+    color: var(--accent-secondary);
+    border-color: var(--border-hot);
+  }
+
+  .toc-toggle.is-open {
+    right: var(--toc-drawer-width);
+  }
 }
 
 @media (max-width: 640px) {
   .post-detail-container {
     padding-inline: 1rem;
+  }
+
+  .back-btn {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  .title {
+    font-size: clamp(1.8rem, 12vw, 2.7rem);
   }
 }
 </style>

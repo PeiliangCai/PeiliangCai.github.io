@@ -1,9 +1,10 @@
 {
-  "avatarUrl": "./avatar2.jpg",
+  "avatarUrl": "./avatar.jpg",
   "avatarBadge": "SYSU",
   "pages": {
     "home": {
-      "kicker": "SYSU // AGENTIC RAG // AI-NATIVE SYSTEMS"
+      "kicker": "SYSU // AGENTIC RAG // AI-NATIVE SYSTEMS",
+      "headlineCn": "面向 AI Agent 与 Agentic RAG 的软件工程实践"
     },
     "blog": {
       "kicker": "KNOWLEDGE BASE // FIELD NOTES",

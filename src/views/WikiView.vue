@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { BookOpen, Calendar, ChevronRight, Search } from 'lucide-vue-next'
-import { getCategoriesFromPosts, loadWikiSummaries } from '../utils/blog'
+import { filterContentItems, getCategoriesFromPosts, loadWikiSummaries } from '../utils/blog'
 
 const pages = ref([])
 const categories = ref(['全部'])
@@ -16,12 +16,7 @@ onMounted(async () => {
 
 const getWikiLink = (page) => page.topic ? `/wiki/${page.topic}/${page.id}` : `/wiki/${page.id}`
 
-const filteredPages = () => pages.value.filter(page => {
-  const query = searchQuery.value.toLowerCase()
-  const matchesSearch = page.title?.toLowerCase().includes(query) || page.summary?.toLowerCase().includes(query)
-  const matchesCategory = selectedCategory.value === '全部' || page.category === selectedCategory.value
-  return matchesSearch && matchesCategory
-})
+const filteredPages = computed(() => filterContentItems(pages.value, searchQuery.value, selectedCategory.value))
 </script>
 
 <template>
@@ -39,7 +34,7 @@ const filteredPages = () => pages.value.filter(page => {
       <aside class="wiki-sidebar">
         <div class="search-box glass">
           <Search :size="18" />
-          <input v-model="searchQuery" type="text" placeholder="Search wiki..." />
+          <input v-model="searchQuery" type="text" placeholder="Search wiki..." aria-label="Search wiki pages" />
         </div>
 
         <div class="filter-section">
@@ -59,10 +54,11 @@ const filteredPages = () => pages.value.filter(page => {
       </aside>
 
       <main class="wiki-feed">
-        <div v-if="filteredPages().length === 0" class="empty">No wiki pages found.</div>
+        <div class="feed-meta geek-font">{{ filteredPages.length }} NODES INDEXED</div>
+        <div v-if="filteredPages.length === 0" class="empty">No wiki pages found.</div>
 
         <router-link
-          v-for="page in filteredPages()"
+          v-for="page in filteredPages"
           :key="page.routePath"
           :to="getWikiLink(page)"
           class="wiki-card glass"
@@ -192,6 +188,26 @@ const filteredPages = () => pages.value.filter(page => {
   color: var(--accent-primary);
 }
 
+.wiki-feed {
+  min-width: 0;
+}
+
+.feed-meta {
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.empty {
+  padding: 2rem;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-panel-soft);
+}
+
 .wiki-card {
   display: block;
   padding: 2rem;
@@ -268,6 +284,9 @@ const filteredPages = () => pages.value.filter(page => {
   }
   .wiki-sidebar {
     position: static;
+  }
+  .wiki-card-meta {
+    flex-direction: column;
   }
 }
 </style>

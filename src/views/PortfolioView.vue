@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { EffectCoverflow, Pagination, Navigation } from 'swiper/modules'
 import { Github, X, ChevronRight } from 'lucide-vue-next'
@@ -25,8 +25,17 @@ const closeProject = () => {
   selectedProject.value = null
 }
 
+const handleGlobalKeydown = (event) => {
+  if (event.key === 'Escape' && selectedProject.value) closeProject()
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', handleGlobalKeydown)
   coreProjects.value = await attachGithubRepos(projectsData.coreProjects, projectsData.github)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
 })
 </script>
 
@@ -57,8 +66,15 @@ onMounted(async () => {
         class="mySwiper"
       >
         <swiper-slide v-for="p in coreProjects" :key="p.id" class="project-slide">
-          <div class="card glass" @click="openProject(p)">
-            <img :src="p.img" alt="Project cover" class="card-img" />
+          <div
+            class="card glass"
+            role="button"
+            tabindex="0"
+            @click="openProject(p)"
+            @keydown.enter="openProject(p)"
+            @keydown.space.prevent="openProject(p)"
+          >
+            <img :src="p.img" :alt="`${p.title} project cover`" class="card-img" loading="lazy" decoding="async" />
             <div class="card-overlay">
               <span class="project-code geek-font">PROJECT_0{{ p.id }}</span>
               <h3>{{ p.title }}</h3>
@@ -71,7 +87,7 @@ onMounted(async () => {
                 <span v-if="p.github.forks !== null">⑂ {{ p.github.forks }}</span>
               </div>
               <p>{{ p.desc }}</p>
-              <button class="expand-btn">查看详情 <ChevronRight :size="16" /></button>
+              <span class="expand-btn">查看详情 <ChevronRight :size="16" /></span>
             </div>
           </div>
         </swiper-slide>
@@ -81,7 +97,9 @@ onMounted(async () => {
     <!-- Expanding Panel -->
     <transition name="expand">
       <div v-if="selectedProject" class="detail-panel glass">
-        <button class="close-panel" @click="closeProject"><X :size="20" /></button>
+        <button class="close-panel" @click="closeProject" type="button" aria-label="Close project detail">
+          <X :size="20" />
+        </button>
         <div class="panel-content">
           <div class="panel-main">
             <h2>{{ selectedProject.title }}</h2>
@@ -95,7 +113,7 @@ onMounted(async () => {
             </div>
             <div v-if="selectedProject.github" class="panel-section">
               <h4>Repository</h4>
-              <a :href="selectedProject.github.url" target="_blank" class="repo-link glass">
+              <a :href="selectedProject.github.url" target="_blank" rel="noopener noreferrer" class="repo-link glass">
                 <Github :size="16" />
                 <span>{{ selectedProject.github.fullName }}</span>
               </a>
@@ -114,7 +132,7 @@ onMounted(async () => {
     <section class="other-works">
       <h2 class="sub-title">Other Works</h2>
       <div class="works-grid">
-        <a v-for="w in otherProjects" :key="w.title" :href="w.link" target="_blank" class="work-link glass">
+        <a v-for="w in otherProjects" :key="w.title" :href="w.link" target="_blank" rel="noopener noreferrer" class="work-link glass">
           <span>{{ w.title }}</span>
           <Github :size="16" />
         </a>
@@ -164,6 +182,11 @@ onMounted(async () => {
 .card:hover {
   transform: translateY(-10px);
   border-color: var(--border-hot);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 4px;
 }
 
 .card-img {

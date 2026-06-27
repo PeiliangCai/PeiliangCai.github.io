@@ -1,0 +1,216 @@
+{
+  "main": {
+    "id": "ed0b80308e1f908f",
+    "type": "split",
+    "children": [
+      {
+        "id": "82569c4719c7b4b0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2eed8ed6080687bf",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "《软件分析》笔记.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "《软件分析》笔记"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "cbaf8a7a4782ac7a",
+    "type": "split",
+    "children": [
+      {
+        "id": "f155c2d2ccedfc80",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "61a27fcb6e7167c5",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "0767ea5eed103f2c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "tag:#AI-Agent",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "403ff31f70e88984",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "right": {
+    "id": "5b38d63cb842edd4",
+    "type": "split",
+    "children": [
+      {
+        "id": "f4099a163ba0c129",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1f4670eb4f0f4c6a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "《数据结构与分析》笔记.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "《数据结构与分析》笔记 的反向链接列表"
+            }
+          },
+          {
+            "id": "2d53321c6e94a7fe",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Agent Memory System.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Agent Memory System 的出链列表"
+            }
+          },
+          {
+            "id": "8862bfdc0792ddd2",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "994a34888aa21482",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "822f85aab8840f24",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Agent Memory System.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Agent Memory System 的大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "2eed8ed6080687bf",
+  "lastOpenFiles": [
+    "Pasted image 20260627172122.png",
+    "Pasted image 20260627170918.png",
+    "Pasted image 20260627170817.png",
+    "Pasted image 20260627170529.png",
+    "Pasted image 20260627170507.png",
+    "《软件分析》笔记.md",
+    "Pasted image 20260627163748.png",
+    "Pasted image 20260627163500.png",
+    "images/《软件分析》/Pasted image 20260627161834.png",
+    "images/《软件分析》/Pasted image 20260627161832.png",
+    "images/《软件分析》/Pasted image 20260627161538.png",
+    "images/《软件分析》/Pasted image 20260626205703.png",
+    "《SoulX-Duplug》论文阅读报告.md",
+    "《数据结构与分析》笔记.md",
+    "images/《软件分析》",
+    "未命名",
+    "images/SoulX-Duplug",
+    "images/新建文件夹",
+    "images",
+    "未命名.base",
+    "agentic-rag-intro.md",
+    "2026-05-26.md",
+    "Agent Memory System.md",
+    "agent-memory-mechanisms.md",
+    "2026-05-10.md",
+    "未命名.canvas"
+  ]
+}

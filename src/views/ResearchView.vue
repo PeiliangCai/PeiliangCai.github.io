@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { BookText, ChevronDown, ChevronUp, ExternalLink, Quote } from 'lucide-vue-next'
 import researchData from '../data/research.json'
 
@@ -30,9 +30,26 @@ const showModal = ref(false)
 const modalImg = ref('')
 
 const openImage = (url) => {
+  if (!url) return
   modalImg.value = url
   showModal.value = true
 }
+
+const closeImage = () => {
+  showModal.value = false
+}
+
+const handleGlobalKeydown = (event) => {
+  if (event.key === 'Escape' && showModal.value) closeImage()
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
 </script>
 
 <template>
@@ -42,7 +59,7 @@ const openImage = (url) => {
       <h1 class="scholar-name">{{ researchData.header.name }}</h1>
       <p class="affiliation">{{ researchData.header.affiliation }}</p>
       <div v-if="validScholarLinks.length" class="scholar-links">
-        <a v-for="link in validScholarLinks" :key="link.label" :href="link.url" target="_blank">
+        <a v-for="link in validScholarLinks" :key="link.label" :href="link.url" target="_blank" rel="noopener noreferrer">
           <component :is="iconMap[link.icon] || ExternalLink" :size="14" /> {{ link.label }}
         </a>
       </div>
@@ -66,17 +83,24 @@ const openImage = (url) => {
             </div>
             
             <div class="paper-actions">
-              <button @click="toggleAbstract(paper.id)" class="action-btn">
+              <button @click="toggleAbstract(paper.id)" class="action-btn" type="button">
                 Abstract 
                 <ChevronDown v-if="!expandedAbstracts.has(paper.id)" :size="16" />
                 <ChevronUp v-else :size="16" />
               </button>
-              <a v-if="hasValidPdf(paper)" :href="paper.pdfUrl" target="_blank" class="action-btn"><ExternalLink :size="16" /> PDF</a>
+              <a v-if="hasValidPdf(paper)" :href="paper.pdfUrl" target="_blank" rel="noopener noreferrer" class="action-btn"><ExternalLink :size="16" /> PDF</a>
             </div>
           </div>
 
-          <div class="paper-visual" @click="openImage(paper.archImg)">
-            <img :src="paper.archImg" alt="Architecture" />
+          <div
+            class="paper-visual"
+            role="button"
+            tabindex="0"
+            @click="openImage(paper.archImg)"
+            @keydown.enter="openImage(paper.archImg)"
+            @keydown.space.prevent="openImage(paper.archImg)"
+          >
+            <img :src="paper.archImg" :alt="`${paper.title} architecture overview`" loading="lazy" decoding="async" />
             <div class="zoom-overlay">🔍 核心架构 (Overview)</div>
           </div>
         </div>
@@ -89,11 +113,10 @@ const openImage = (url) => {
       </div>
     </section>
 
-    <!-- Image Modal -->
     <teleport to="body">
-      <div v-if="showModal" class="modal-overlay" @click="showModal = false">
+      <div v-if="showModal" class="modal-overlay" @click="closeImage">
         <div class="modal-content animate-fade-in">
-          <img :src="modalImg" class="large-img" />
+          <img :src="modalImg" class="large-img" alt="Research architecture enlarged preview" />
         </div>
       </div>
     </teleport>
@@ -303,6 +326,11 @@ const openImage = (url) => {
 
 .paper-visual:hover img {
   transform: scale(1.1);
+}
+
+.paper-visual:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 4px;
 }
 
 .abstract-body {

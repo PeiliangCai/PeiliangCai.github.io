@@ -1,20 +1,42 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Sun, Moon, Home, FolderKanban, GraduationCap, BookOpenText } from 'lucide-vue-next'
+import { Sun, Moon, Home, GraduationCap, BookOpenText } from 'lucide-vue-next'
 import Starfield from './components/Starfield.vue'
 
 const isDark = ref(true)
 
+const getTheme = () => {
+  const currentTheme = document.documentElement.getAttribute('data-theme')
+  if (currentTheme === 'dark' || currentTheme === 'light') return currentTheme
+
+  try {
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme
+    return 'dark'
+  } catch (error) {
+    return 'dark'
+  }
+}
+
+const setTheme = (theme) => {
+  document.documentElement.setAttribute('data-theme', theme)
+
+  try {
+    localStorage.setItem('theme', theme)
+  } catch (error) {
+    // Theme still applies for the current session.
+  }
+}
+
 const toggleTheme = () => {
   isDark.value = !isDark.value
-  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  setTheme(isDark.value ? 'dark' : 'light')
 }
 
 onMounted(() => {
-  const savedTheme = localStorage.getItem('theme') || 'dark'
-  isDark.value = savedTheme === 'dark'
-  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+  const theme = getTheme()
+  isDark.value = theme === 'dark'
+  setTheme(theme)
 })
 </script>
 
@@ -22,28 +44,32 @@ onMounted(() => {
   <Starfield />
 
   <header class="header glass">
-    <nav class="nav">
-      <router-link to="/" class="nav-brand geek-font">
+    <nav class="nav" aria-label="Primary navigation">
+      <router-link to="/" class="nav-brand geek-font" aria-label="Cai Peiliang home">
         <span class="brand-mark"></span>
         <span class="brand-text">PEILIANG.<b>CAI</b></span>
       </router-link>
       
       <div class="nav-links">
-        <router-link to="/" class="nav-link">
+        <router-link to="/" class="nav-link" data-label="Home" title="Home" aria-label="Home">
           <Home :size="18" /> <span>HOME</span>
         </router-link>
-        <router-link to="/portfolio" class="nav-link">
-          <FolderKanban :size="18" /> <span>PORTFOLIO</span>
-        </router-link>
-        <router-link to="/research" class="nav-link">
+        <router-link to="/research" class="nav-link" data-label="Research" title="Research" aria-label="Research">
           <GraduationCap :size="18" /> <span>RESEARCH</span>
         </router-link>
-        <router-link to="/blog" class="nav-link">
+        <router-link to="/blog" class="nav-link" data-label="Blog" title="Blog" aria-label="Blog">
           <BookOpenText :size="18" /> <span>BLOG</span>
         </router-link>
       </div>
 
-      <button @click="toggleTheme" class="theme-btn">
+      <button
+        @click="toggleTheme"
+        class="theme-btn"
+        type="button"
+        :data-label="isDark ? 'Light' : 'Dark'"
+        :title="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+        :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+      >
         <Moon v-if="isDark" :size="20" />
         <Sun v-else :size="20" />
       </button>
@@ -119,6 +145,7 @@ onMounted(() => {
 }
 
 .nav-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -139,6 +166,7 @@ onMounted(() => {
 }
 
 .theme-btn {
+  position: relative;
   display: grid;
   place-items: center;
   width: 2.55rem;
@@ -178,6 +206,29 @@ onMounted(() => {
   }
   .nav-link {
     padding: 0 0.65rem;
+  }
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after,
+  .theme-btn:hover::after,
+  .theme-btn:focus-visible::after {
+    content: attr(data-label);
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    left: 50%;
+    z-index: 1200;
+    transform: translateX(-50%);
+    padding: 0.34rem 0.5rem;
+    color: var(--accent-primary);
+    background: var(--bg-card-strong);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    box-shadow: var(--shadow-cyber);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
   }
   .main {
     padding-top: 5.8rem;

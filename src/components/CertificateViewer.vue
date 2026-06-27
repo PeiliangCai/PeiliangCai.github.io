@@ -117,6 +117,10 @@ const handleGlobalEvents = (e) => {
     e.preventDefault()
     alert('为了版权保护，预览模式禁止打印和直接保存。')
   }
+
+  if (e.key === 'Escape') {
+    closeModal()
+  }
 }
 
 onMounted(() => {
@@ -131,19 +135,21 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="cert-text-item" @click="openModal">
+  <button class="cert-text-item" type="button" @click="openModal">
     <span class="cert-title">{{ title }}</span>
-    <button class="view-icon-btn">
+    <span class="view-icon-btn" aria-hidden="true">
       <Eye :size="16" />
-    </button>
-  </div>
+    </span>
+  </button>
 
   <teleport to="body">
     <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
       <div class="modal-container glass animate-fade-in">
         <header class="modal-header">
           <h3>{{ title }} - 预览</h3>
-          <button @click="closeModal" class="close-btn"><X :size="20" /></button>
+          <button @click="closeModal" class="close-btn" type="button" aria-label="Close certificate preview">
+            <X :size="20" />
+          </button>
         </header>
         
         <div class="canvas-wrapper">
@@ -178,6 +184,7 @@ onUnmounted(() => {
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--glass-bg);
+  text-align: left;
   transition: all 0.25s var(--transition-smooth);
 }
 
@@ -191,6 +198,11 @@ onUnmounted(() => {
   border-color: var(--accent-primary);
   box-shadow: var(--shadow-hot);
   transform: translateY(-2px);
+}
+
+.cert-text-item:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 4px;
 }
 
 .cert-text-item:hover .cert-title {

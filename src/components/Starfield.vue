@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const pointer = ref({ x: 50, y: 50 })
 const isMobile = ref(false)
+const prefersReducedMotion = ref(false)
 
 const seededRandom = (seed) => {
   let value = seed
@@ -106,7 +107,8 @@ const handlePointerLeave = () => {
 
 onMounted(() => {
   isMobile.value = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
-  if (!isMobile.value) {
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!isMobile.value && !prefersReducedMotion.value) {
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     window.addEventListener('pointerleave', handlePointerLeave)
   }
@@ -211,6 +213,10 @@ onUnmounted(() => {
   .cursor-aura {
     transition: none;
     animation: none;
+  }
+
+  .cursor-aura {
+    display: none;
   }
 }
 </style>

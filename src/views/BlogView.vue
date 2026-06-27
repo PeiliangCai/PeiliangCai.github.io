@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Search, Calendar, ChevronRight } from 'lucide-vue-next'
 import siteData from '../data/site.json'
-import { getCategoriesFromPosts, loadBlogSummaries } from '../utils/blog'
+import { filterContentItems, getCategoriesFromPosts, loadBlogSummaries } from '../utils/blog'
 
 const blogs = ref([])
 const categories = ref(['全部'])
@@ -15,13 +15,7 @@ onMounted(async () => {
   categories.value = getCategoriesFromPosts(blogs.value)
 })
 
-const filteredBlogs = () => {
-  return blogs.value.filter(post => {
-    const matchesSearch = post.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesCategory = selectedCategory.value === '全部' || post.category === selectedCategory.value
-    return matchesSearch && matchesCategory
-  })
-}
+const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery.value, selectedCategory.value))
 </script>
 
 <template>
@@ -40,7 +34,7 @@ const filteredBlogs = () => {
       <aside class="blog-sidebar">
         <div class="search-box glass">
           <Search :size="18" />
-          <input v-model="searchQuery" type="text" placeholder="Search posts..." />
+          <input v-model="searchQuery" type="text" placeholder="Search posts..." aria-label="Search blog posts" />
         </div>
 
         <div class="filter-section">
@@ -61,10 +55,11 @@ const filteredBlogs = () => {
 
       <!-- Main Feed -->
       <main class="blog-feed">
-        <div v-if="filteredBlogs().length === 0" class="empty">No posts found.</div>
+        <div class="feed-meta geek-font">{{ filteredBlogs.length }} POSTS INDEXED</div>
+        <div v-if="filteredBlogs.length === 0" class="empty">No posts found.</div>
         
         <router-link 
-          v-for="post in filteredBlogs()" 
+          v-for="post in filteredBlogs" 
           :key="post.id"
           :to="`/blog/${post.id}`"
           class="post-card glass"
@@ -74,6 +69,7 @@ const filteredBlogs = () => {
             <span class="post-date"><Calendar :size="14" /> {{ post.date }}</span>
           </div>
           <h2 class="post-title">{{ post.title }}</h2>
+          <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
           <div class="post-tags">
             <span v-for="tag in post.tags || []" :key="tag" class="tag">{{ tag }}</span>
           </div>
@@ -148,6 +144,26 @@ const filteredBlogs = () => {
   gap: 0.75rem;
   padding: 0.9rem 1rem;
   color: var(--accent-primary);
+}
+
+.blog-feed {
+  min-width: 0;
+}
+
+.feed-meta {
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.empty {
+  padding: 2rem;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-panel-soft);
 }
 
 .search-box input {
@@ -245,11 +261,19 @@ const filteredBlogs = () => {
   font-size: clamp(1.35rem, 3vw, 1.95rem);
   line-height: 1.16;
   font-weight: 800;
+  margin-bottom: 0.9rem;
+}
+
+.post-summary {
+  max-width: 720px;
   margin-bottom: 1.25rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
 }
 
 .post-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 2rem;
 }
@@ -283,6 +307,10 @@ const filteredBlogs = () => {
   }
   .blog-sidebar {
     position: static;
+  }
+  .post-header {
+    flex-direction: column;
+    gap: 0.45rem;
   }
 }
 </style>

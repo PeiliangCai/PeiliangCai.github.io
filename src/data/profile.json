@@ -1,13 +1,25 @@
 {
   "name": "Cai Peiliang",
   "nameCn": "蔡沛良",
-  "tagline": "Software Engineering @ SYSU | Researching Agentic RAG & AI Agents",
+  "tagline": "Software Engineering @ SYSU",
+  "summaryCn": "中山大学软件工程本科生，关注 Agentic RAG、AI Agents 与 AI-native productivity tools 的系统设计和工程落地。",
   "intro": [
     "Hi, I'm Peiliang Cai, a Software Engineering student at Sun Yat-sen University, working under the guidance of Dr. Weibin Wu.",
     "My current research focuses on the design and implementation of Agentic RAG. I am deeply passionate about exploring the frontiers of AI Agents and abstracting elegant system architectures from complex logic to build next-generation AI-native productivity tools."
   ],
+  "advisor": {
+    "name": "Dr. Weibin Wu",
+    "url": "https://sse.sysu.edu.cn/teacher/249"
+  },
+  "focusAreas": [
+    "Agentic RAG",
+    "AI Agents",
+    "LLM Systems",
+    "Software Engineering",
+    "Trustworthy Machine Learning"
+  ],
   "contact": {
-    "location": "Guangzhou, China",
+    "location": "Zhuhai, China",
     "email": "13077290887@163.com",
     "github": "github.com/PeiliangCai"
   },
@@ -15,8 +27,7 @@
     {
       "school": "Sun Yat-sen University",
       "degree": "Software Engineering (Undergraduate)",
-      "period": "2023 - 2027",
-      "honors": "GPA 3.9/4.0"
+      "period": "2023 - 2027"
     }
   ],
   "certificates": [

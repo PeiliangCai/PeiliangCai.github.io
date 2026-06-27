@@ -3,6 +3,7 @@ title: Agent 记忆机制：从上下文窗口到长期知识沉淀
 date: 2026-05-07
 category: 大模型工程
 tags: [AI-Agent, Memory, LLM, RAG]
+summary: 解释 Agent Memory 的短期、长期、情景、语义和程序性记忆，并给出可落地的分层架构。
 ---
 
 # Agent 记忆机制：从上下文窗口到长期知识沉淀
