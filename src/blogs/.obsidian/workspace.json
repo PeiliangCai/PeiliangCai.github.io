@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "《软件分析》笔记.md",
+                "file": "《图机器学习》笔记.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "《软件分析》笔记"
+              "title": "《图机器学习》笔记"
             }
           }
         ]
@@ -186,31 +186,32 @@
   },
   "active": "2eed8ed6080687bf",
   "lastOpenFiles": [
-    "Pasted image 20260627172122.png",
-    "Pasted image 20260627170918.png",
-    "Pasted image 20260627170817.png",
-    "Pasted image 20260627170529.png",
-    "Pasted image 20260627170507.png",
-    "《软件分析》笔记.md",
-    "Pasted image 20260627163748.png",
-    "Pasted image 20260627163500.png",
-    "images/《软件分析》/Pasted image 20260627161834.png",
-    "images/《软件分析》/Pasted image 20260627161832.png",
-    "images/《软件分析》/Pasted image 20260627161538.png",
-    "images/《软件分析》/Pasted image 20260626205703.png",
-    "《SoulX-Duplug》论文阅读报告.md",
     "《数据结构与分析》笔记.md",
+    "《软件分析》笔记.md",
+    "未命名.base",
+    "未命名.canvas",
+    "agentic-rag-intro.md",
+    "agent-memory-mechanisms.md",
+    "Agent Memory System.md",
+    "2026-07-01.md",
+    "《图机器学习》笔记.md",
+    "images/《软件分析》/Pasted image 20260629194806.png",
+    "images/《软件分析》/Pasted image 20260629150408.png",
+    "images/《软件分析》/Pasted image 20260629150215.png",
+    "images/《软件分析》/Pasted image 20260629145801.png",
+    "images/《软件分析》/Pasted image 20260629145619.png",
+    "images/《软件分析》/Pasted image 20260627214032.png",
+    "images/《软件分析》/Pasted image 20260627213710.png",
+    "images/《软件分析》/Pasted image 20260627213356.png",
+    "images/《软件分析》/Pasted image 20260627212906.png",
+    "images/《软件分析》/Pasted image 20260627212711.png",
+    "《SoulX-Duplug》论文阅读报告.md",
     "images/《软件分析》",
     "未命名",
     "images/SoulX-Duplug",
     "images/新建文件夹",
     "images",
-    "未命名.base",
-    "agentic-rag-intro.md",
     "2026-05-26.md",
-    "Agent Memory System.md",
-    "agent-memory-mechanisms.md",
-    "2026-05-10.md",
-    "未命名.canvas"
+    "2026-05-10.md"
   ]
 }

@@ -38,7 +38,10 @@ const loadPost = async () => {
 
     const rawContent = await entry.loader()
     const { data, content } = parseFrontmatter(rawContent)
-    const rendered = renderMarkdown(content, { sourcePath: entry.path })
+    const rendered = renderMarkdown(content, {
+      sourcePath: entry.path,
+      headingLevels: [1, 2, 3]
+    })
 
     post.value = data
     htmlContent.value = rendered.html
@@ -94,38 +97,32 @@ const goBack = () => router.push('/blog')
       <ArrowLeft :size="20" /> Back to Feed
     </button>
 
-    <button
-      v-if="post && isPageActive && headings.length"
-      class="toc-toggle"
-      :class="{ 'is-open': isTocOpen }"
-      type="button"
-      aria-controls="article-toc"
-      :aria-expanded="isTocOpen"
-      :aria-label="isTocOpen ? 'Hide table of contents' : 'Show table of contents'"
-      @click="isTocOpen = !isTocOpen"
-    >
-      <ChevronRight v-if="isTocOpen" :size="18" />
-      <ChevronLeft v-else :size="18" />
-    </button>
-
-    <aside
-      v-if="post && isPageActive && headings.length"
-      id="article-toc"
-      class="markdown-toc glass"
-      :class="{ 'is-open': isTocOpen }"
-      aria-label="Table of contents"
-    >
-      <div class="toc-title geek-font">ON THIS PAGE</div>
-      <a
-        v-for="heading in headings"
-        :key="heading.id"
-        :href="`#${heading.id}`"
-        :class="`level-${heading.level}`"
-        @click="closeToc"
+    <div v-if="post && isPageActive && headings.length" class="toc-dock" :class="{ 'is-open': isTocOpen }">
+      <button
+        class="toc-toggle"
+        type="button"
+        aria-controls="article-toc"
+        :aria-expanded="isTocOpen"
+        :aria-label="isTocOpen ? 'Hide table of contents' : 'Show table of contents'"
+        @click="isTocOpen = !isTocOpen"
       >
-        {{ heading.title }}
-      </a>
-    </aside>
+        <ChevronRight v-if="isTocOpen" :size="18" />
+        <ChevronLeft v-else :size="18" />
+      </button>
+
+      <aside id="article-toc" class="markdown-toc glass" aria-label="Table of contents">
+        <div class="toc-title geek-font">ON THIS PAGE</div>
+        <a
+          v-for="heading in headings"
+          :key="heading.id"
+          :href="`#${heading.id}`"
+          :class="`level-${heading.level}`"
+          @click="closeToc"
+        >
+          {{ heading.title }}
+        </a>
+      </aside>
+    </div>
   </teleport>
 </template>
 
@@ -217,16 +214,24 @@ const goBack = () => router.push('/blog')
   max-width: 860px;
 }
 
-.markdown-toc {
+.toc-dock {
+  --toc-top-safe: 7rem;
+  --toc-bottom-safe: 1rem;
   position: fixed;
-  top: 7rem;
+  top: calc(var(--toc-top-safe) + (100vh - var(--toc-top-safe) - var(--toc-bottom-safe)) / 2);
   right: max(1rem, env(safe-area-inset-right));
   z-index: 880;
+  width: 270px;
+  max-height: calc(100vh - var(--toc-top-safe) - var(--toc-bottom-safe));
+  transform: translateY(-50%);
+}
+
+.markdown-toc {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  width: 270px;
-  max-height: calc(100vh - 8.5rem);
+  width: 100%;
+  max-height: inherit;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 1rem;
@@ -254,6 +259,15 @@ const goBack = () => router.push('/blog')
 
 .markdown-toc a:hover {
   color: var(--accent-primary);
+}
+
+.markdown-toc .level-1 {
+  color: var(--text-primary);
+  font-weight: 900;
+}
+
+.markdown-toc .level-2 {
+  padding-left: 0.55rem;
 }
 
 .markdown-toc .level-3 {
@@ -371,35 +385,27 @@ const goBack = () => router.push('/blog')
 }
 
 @media (max-width: 1280px) {
-  .markdown-toc {
+  .toc-dock {
     --toc-drawer-width: min(22rem, calc(100vw - 3.5rem));
-    top: 6rem;
     right: 0;
     width: var(--toc-drawer-width);
-    max-height: calc(100vh - 7.25rem);
-    border-radius: 8px 0 0 8px;
-    transform: translateX(calc(100% + 0.75rem));
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition:
-      transform 0.28s var(--transition-smooth),
-      opacity 0.2s var(--transition-smooth);
+    transform: translate(100%, -50%);
+    transition: transform 0.28s var(--transition-smooth);
   }
 
-  .markdown-toc.is-open {
-    transform: translateX(0);
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
+  .toc-dock.is-open {
+    transform: translate(0, -50%);
+  }
+
+  .markdown-toc {
+    border-radius: 8px 0 0 8px;
   }
 
   .toc-toggle {
-    --toc-drawer-width: min(22rem, calc(100vw - 3.5rem));
-    position: fixed;
+    position: absolute;
     top: 50%;
-    right: 0;
-    z-index: 930;
+    left: -2.35rem;
+    z-index: 1;
     display: grid;
     place-items: center;
     width: 2.35rem;
@@ -412,7 +418,6 @@ const goBack = () => router.push('/blog')
     box-shadow: var(--shadow-cyber);
     transform: translateY(-50%);
     transition:
-      right 0.28s var(--transition-smooth),
       color 0.2s var(--transition-smooth),
       border-color 0.2s var(--transition-smooth);
   }
@@ -422,9 +427,6 @@ const goBack = () => router.push('/blog')
     border-color: var(--border-hot);
   }
 
-  .toc-toggle.is-open {
-    right: var(--toc-drawer-width);
-  }
 }
 
 @media (max-width: 640px) {

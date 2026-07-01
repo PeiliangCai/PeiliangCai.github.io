@@ -114,7 +114,7 @@ md.renderer.rules.heading_open = (tokens, idx, options, env, self) => {
   const id = slugify(title, env.headingCounts)
 
   token.attrSet('id', id)
-  if (level >= 2 && level <= 3) {
+  if (env.headingLevels.includes(level)) {
     env.headings.push({ id, title, level })
   }
 
@@ -124,7 +124,8 @@ md.renderer.rules.heading_open = (tokens, idx, options, env, self) => {
 export const renderMarkdown = (content, options = {}) => {
   const env = {
     headings: [],
-    headingCounts: new Map()
+    headingCounts: new Map(),
+    headingLevels: options.headingLevels || [2, 3]
   }
   const normalized = normalizeObsidianEmbeds(content, options.sourcePath)
 

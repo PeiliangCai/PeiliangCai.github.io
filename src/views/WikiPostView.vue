@@ -1,6 +1,6 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
-import { ArrowLeft, ExternalLink } from 'lucide-vue-next'
+import { computed, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
+import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { createWikiLoadersByRoutePath, parseFrontmatter } from '../utils/blog'
 import { enhanceMarkdownRoot, renderMarkdown } from '../utils/markdown'
@@ -15,6 +15,8 @@ const page = ref(null)
 const htmlContent = ref('')
 const headings = ref([])
 const contentRoot = ref(null)
+const isTocOpen = ref(false)
+const isPageActive = ref(true)
 const modules = import.meta.glob('../wiki/**/*.md', { query: '?raw', import: 'default' })
 const pagesByRoutePath = createWikiLoadersByRoutePath(modules)
 
@@ -46,6 +48,7 @@ const loadPage = async () => {
     page.value = data
     htmlContent.value = rendered.html
     headings.value = rendered.headings
+    isTocOpen.value = false
     await enhanceContent()
   } catch (error) {
     console.error('Error loading wiki page:', error)
@@ -55,15 +58,24 @@ const loadPage = async () => {
 
 watch(() => `${props.topic || ''}/${props.id || ''}`, loadPage, { immediate: true })
 
+onActivated(() => {
+  isPageActive.value = true
+})
+
+onDeactivated(() => {
+  isPageActive.value = false
+  isTocOpen.value = false
+})
+
+const closeToc = () => {
+  isTocOpen.value = false
+}
+
 const goBack = () => router.push('/wiki')
 </script>
 
 <template>
   <div v-if="page" class="wiki-detail-container animate-fade-in">
-    <button @click="goBack" class="back-btn" type="button">
-      <ArrowLeft :size="20" /> Back to Wiki
-    </button>
-
     <header class="wiki-hero">
       <div class="meta geek-font">
         <span>{{ page.category || 'Wiki' }}</span>
@@ -86,21 +98,47 @@ const goBack = () => router.push('/wiki')
       </router-link>
     </header>
 
-    <div class="content-layout" :class="{ 'has-toc': headings.length }">
+    <div class="content-layout">
       <article ref="contentRoot" class="markdown-body glass" v-html="htmlContent"></article>
-      <aside v-if="headings.length" class="markdown-toc glass" aria-label="Table of contents">
+    </div>
+  </div>
+
+  <teleport to="body">
+    <button v-if="page && isPageActive" @click="goBack" class="wiki-floating-back" type="button">
+      <ArrowLeft :size="20" /> Back to Wiki
+    </button>
+
+    <div
+      v-if="page && isPageActive && headings.length"
+      class="wiki-toc-dock"
+      :class="{ 'is-open': isTocOpen }"
+    >
+      <button
+        class="wiki-toc-toggle"
+        type="button"
+        aria-controls="wiki-toc"
+        :aria-expanded="isTocOpen"
+        :aria-label="isTocOpen ? 'Hide table of contents' : 'Show table of contents'"
+        @click="isTocOpen = !isTocOpen"
+      >
+        <ChevronRight v-if="isTocOpen" :size="18" />
+        <ChevronLeft v-else :size="18" />
+      </button>
+
+      <aside id="wiki-toc" class="wiki-floating-toc glass" aria-label="Table of contents">
         <div class="toc-title geek-font">ON THIS PAGE</div>
         <a
           v-for="heading in headings"
           :key="heading.id"
           :href="`#${heading.id}`"
           :class="`level-${heading.level}`"
+          @click="closeToc"
         >
           {{ heading.title }}
         </a>
       </aside>
     </div>
-  </div>
+  </teleport>
 </template>
 
 <style scoped>
@@ -111,17 +149,52 @@ const goBack = () => router.push('/wiki')
 }
 
 .back-btn {
+  --floating-bottom: max(1rem, env(safe-area-inset-bottom));
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: var(--floating-bottom);
+  z-index: 1200;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   width: fit-content;
-  margin-bottom: 3rem;
   padding: 0.58rem 0.8rem;
   color: var(--text-secondary);
   font-weight: 700;
   border: 1px solid var(--border-color);
   border-radius: 6px;
+  background: var(--bg-card-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.2);
   transition: all 0.25s var(--transition-smooth);
+}
+
+:global(.wiki-floating-back) {
+  --floating-bottom: max(1rem, env(safe-area-inset-bottom));
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: var(--floating-bottom);
+  z-index: 1200;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.58rem 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-card-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s var(--transition-smooth);
+}
+
+:global(.wiki-floating-back:hover) {
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-hot);
 }
 
 .back-btn:hover {
@@ -173,23 +246,72 @@ const goBack = () => router.push('/wiki')
 }
 
 .content-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1.5rem;
-  align-items: start;
+  max-width: 860px;
 }
 
-.content-layout.has-toc {
-  grid-template-columns: minmax(0, 860px) 220px;
+.toc-dock {
+  --toc-top-safe: 7rem;
+  --toc-bottom-safe: 1rem;
+  position: fixed;
+  top: calc(var(--toc-top-safe) + (100vh - var(--toc-top-safe) - var(--toc-bottom-safe)) / 2);
+  right: max(1rem, env(safe-area-inset-right));
+  z-index: 880;
+  width: 270px;
+  max-height: calc(100vh - var(--toc-top-safe) - var(--toc-bottom-safe));
+  transform: translateY(-50%);
 }
 
 .markdown-toc {
-  position: sticky;
-  top: 7rem;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
+  width: 100%;
+  max-height: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) transparent;
+}
+
+.toc-toggle {
+  display: none;
+}
+
+:global(.wiki-toc-dock) {
+  --toc-top-safe: 7rem;
+  --toc-bottom-safe: 1rem;
+  position: fixed;
+  top: calc(var(--toc-top-safe) + (100vh - var(--toc-top-safe) - var(--toc-bottom-safe)) / 2);
+  right: max(1rem, env(safe-area-inset-right));
+  z-index: 880;
+  width: 270px;
+  max-height: calc(100vh - var(--toc-top-safe) - var(--toc-bottom-safe));
+  transform: translateY(-50%);
+}
+
+:global(.wiki-floating-toc) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  max-height: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) transparent;
+}
+
+:global(.wiki-floating-toc .toc-title) {
+  color: var(--accent-secondary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+:global(.wiki-toc-toggle) {
+  display: none;
 }
 
 .toc-title {
@@ -210,7 +332,32 @@ const goBack = () => router.push('/wiki')
   color: var(--accent-primary);
 }
 
+.markdown-toc .level-2 {
+  padding-left: 0.55rem;
+}
+
 .markdown-toc .level-3 {
+  padding-left: 0.8rem;
+  font-size: 0.78rem;
+  opacity: 0.86;
+}
+
+:global(.wiki-floating-toc a) {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  transition: color 0.2s var(--transition-smooth);
+}
+
+:global(.wiki-floating-toc a:hover) {
+  color: var(--accent-primary);
+}
+
+:global(.wiki-floating-toc .level-2) {
+  padding-left: 0.55rem;
+}
+
+:global(.wiki-floating-toc .level-3) {
   padding-left: 0.8rem;
   font-size: 0.78rem;
   opacity: 0.86;
@@ -324,20 +471,105 @@ const goBack = () => router.push('/wiki')
   background: var(--accent-primary);
 }
 
-@media (max-width: 980px) {
-  .content-layout.has-toc {
-    grid-template-columns: 1fr;
+@media (max-width: 1280px) {
+  .toc-dock {
+    --toc-drawer-width: min(22rem, calc(100vw - 3.5rem));
+    right: 0;
+    width: var(--toc-drawer-width);
+    transform: translate(100%, -50%);
+    transition: transform 0.28s var(--transition-smooth);
+  }
+
+  .toc-dock.is-open {
+    transform: translate(0, -50%);
   }
 
   .markdown-toc {
-    position: static;
-    order: -1;
+    border-radius: 8px 0 0 8px;
+  }
+
+  .toc-toggle {
+    position: absolute;
+    top: 50%;
+    left: -2.35rem;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 3.1rem;
+    color: var(--accent-primary);
+    background: var(--bg-card-strong);
+    border: 1px solid var(--border-color);
+    border-right: 0;
+    border-radius: 6px 0 0 6px;
+    box-shadow: var(--shadow-cyber);
+    transform: translateY(-50%);
+    transition:
+      color 0.2s var(--transition-smooth),
+      border-color 0.2s var(--transition-smooth);
+  }
+
+  .toc-toggle:hover {
+    color: var(--accent-secondary);
+    border-color: var(--border-hot);
+  }
+
+  :global(.wiki-toc-dock) {
+    --toc-drawer-width: min(22rem, calc(100vw - 3.5rem));
+    right: 0;
+    width: var(--toc-drawer-width);
+    transform: translate(100%, -50%);
+    transition: transform 0.28s var(--transition-smooth);
+  }
+
+  :global(.wiki-toc-dock.is-open) {
+    transform: translate(0, -50%);
+  }
+
+  :global(.wiki-floating-toc) {
+    border-radius: 8px 0 0 8px;
+  }
+
+  :global(.wiki-toc-toggle) {
+    position: absolute;
+    top: 50%;
+    left: -2.35rem;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 3.1rem;
+    color: var(--accent-primary);
+    background: var(--bg-card-strong);
+    border: 1px solid var(--border-color);
+    border-right: 0;
+    border-radius: 6px 0 0 6px;
+    box-shadow: var(--shadow-cyber);
+    transform: translateY(-50%);
+    transition:
+      color 0.2s var(--transition-smooth),
+      border-color 0.2s var(--transition-smooth);
+  }
+
+  :global(.wiki-toc-toggle:hover) {
+    color: var(--accent-secondary);
+    border-color: var(--border-hot);
   }
 }
 
 @media (max-width: 640px) {
   .wiki-detail-container {
     padding-inline: 1rem;
+  }
+
+  .back-btn {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  :global(.wiki-floating-back) {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.82rem;
   }
 
   .wiki-hero h1 {
