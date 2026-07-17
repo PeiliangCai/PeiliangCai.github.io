@@ -65,12 +65,12 @@ const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery
           class="post-card glass"
         >
           <div class="post-header">
-            <span class="post-cat"># {{ post.category }}</span>
-            <span class="post-date"><Calendar :size="14" /> {{ post.date }}</span>
+            <span class="post-cat"># {{ post.category || 'Article' }}</span>
+            <span v-if="post.date" class="post-date"><Calendar :size="14" /> {{ post.date }}</span>
           </div>
           <h2 class="post-title">{{ post.title }}</h2>
           <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
-          <div class="post-tags">
+          <div v-if="post.tags?.length" class="post-tags">
             <span v-for="tag in post.tags || []" :key="tag" class="tag">{{ tag }}</span>
           </div>
           <div class="read-more">
@@ -241,6 +241,8 @@ const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery
 .post-header {
   display: flex;
   justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   margin-bottom: 1rem;
   font-size: 0.85rem;
 }
@@ -255,6 +257,7 @@ const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery
   align-items: center;
   gap: 0.4rem;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .post-title {
@@ -275,7 +278,7 @@ const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.35rem;
 }
 
 .tag {
@@ -307,6 +310,17 @@ const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery
   }
   .blog-sidebar {
     position: static;
+    gap: 1.25rem;
+  }
+  .cat-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+  .cat-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
   .post-header {
     flex-direction: column;

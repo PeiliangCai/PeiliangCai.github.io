@@ -12,7 +12,11 @@ export const parseFrontmatter = (content) => {
     if (key && valParts.length > 0) {
       let val = valParts.join(':').trim()
       if (val.startsWith('[') && val.endsWith(']')) {
-        val = val.slice(1, -1).split(',').map(s => s.trim())
+        val = val
+          .slice(1, -1)
+          .split(',')
+          .map(s => s.trim().replace(/^['"]|['"]$/g, ''))
+          .filter(Boolean)
       } else {
         val = val.replace(/^['"]|['"]$/g, '')
       }
@@ -24,6 +28,146 @@ export const parseFrontmatter = (content) => {
 }
 
 export const getBlogIdFromPath = (path) => path.split('/').pop().replace('.md', '')
+
+const titleFromPath = (path) => {
+  const rawStem = getBlogIdFromPath(path || '')
+    .replace(/^\d{4}[-_]\d{2}[-_]\d{2}[-_\s]*/, '')
+    .replace(/[-_]+/g, ' ')
+    .trim()
+
+  try {
+    return decodeURIComponent(rawStem)
+  } catch (error) {
+    return rawStem
+  }
+}
+
+const cleanInlineMarkdown = (value = '') => value
+  .replace(/!\[\[([^\]]+)\]\]/g, '$1')
+  .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  .replace(/[*_`~>#]/g, '')
+  .replace(/\s+/g, ' ')
+  .trim()
+
+const firstHeadingFromContent = (content = '') => {
+  const heading = content.match(/^\s*#\s+(.+)$/m)
+  return heading ? cleanInlineMarkdown(heading[1]) : ''
+}
+
+const dateFromPath = (path = '') => {
+  const match = getBlogIdFromPath(path).match(/(?:^|[^\d])(\d{4})[-_]?(\d{2})[-_]?(\d{2})(?:[^\d]|$)/)
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : ''
+}
+
+const stripMarkdown = (content = '') => content
+  .replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '')
+  .replace(/```[\s\S]*?```/g, ' ')
+  .replace(/!\[\[[^\]]+\]\]/g, ' ')
+  .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+  .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  .replace(/`([^`]+)`/g, '$1')
+  .replace(/<[^>]+>/g, ' ')
+  .replace(/[#>*_~|$[\]()`-]/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+
+const inferSummary = (content = '') => {
+  const lines = content
+    .replace(/```[\s\S]*?```/g, '')
+    .split('\n')
+    .map(line => cleanInlineMarkdown(line.replace(/^\s*[-*+]\s+\[[ x]\]\s*/i, '')))
+    .filter(line => line && !line.startsWith('---') && !line.match(/^#+\s/))
+
+  const summary = lines.find(line => line.length >= 18) || stripMarkdown(content)
+  return summary.length > 118 ? `${summary.slice(0, 118)}...` : summary
+}
+
+const inferCategory = (text = '') => {
+  if (/暑研|research|benchmark|实验计划/i.test(text)) return '研究记录'
+  if (/数据集|dataset|trainset|shard/i.test(text)) return '数据集'
+  if (/课程|笔记|PPT|数据结构|软件分析|图机器学习/i.test(text)) return '课程笔记'
+  if (/论文|paper|arxiv|IC3|IC3Syn|Invariant|Protocol|TLA\+/i.test(text)) return '论文阅读'
+  if (/Agent|RAG|LLM|Memory|大模型/i.test(text)) return '大模型工程'
+  return '技术笔记'
+}
+
+const tagRules = [
+  ['AI-Agent', /AI[-\s]?Agent|Agentic|智能体/i],
+  ['RAG', /\bRAG\b|检索增强/i],
+  ['LLM', /\bLLM\b|大语言模型|大模型/i],
+  ['Memory', /\bMemory\b|记忆/i],
+  ['IC3Syn', /\bIC3Syn\b/i],
+  ['IC3', /\bIC3\b/i],
+  ['TLA+', /TLA\+|Apalache|TLC|TLAPS/i],
+  ['Formal-Verification', /形式化|Safety|Invariant|verification|验证器|归纳不变量/i],
+  ['Distributed-Systems', /distributed|分布式|protocol|协议/i],
+  ['Dataset', /dataset|数据集|trainset|shard/i],
+  ['Speech', /speech|语音|ASR|TTS|VAD/i],
+  ['Dialogue', /dialogue|对话/i],
+  ['Graph-Learning', /图机器学习|Graph Learning|Node Embedding|Random Walk/i],
+  ['GNN', /\bGNN\b|GCN|GraphSAGE|GAT/i],
+  ['Knowledge-Graph', /知识图谱|Knowledge Graph|TransE|TransR|ComplEx/i],
+  ['Recommender-System', /推荐系统|Recommender/i],
+  ['Data-Structure', /数据结构|Data Structure/i],
+  ['Algorithm', /算法|Algorithm/i],
+  ['Program-Analysis', /软件分析|Program Analysis/i],
+  ['Static-Analysis', /静态分析|Static Analysis/i],
+  ['Research', /暑研|research|benchmark/i],
+  ['Course', /课程|PPT|期末|复习/i]
+]
+
+const normalizeTags = (tags) => {
+  if (Array.isArray(tags)) {
+    return tags.map(tag => String(tag).trim()).filter(Boolean)
+  }
+
+  if (typeof tags === 'string') {
+    return tags
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(Boolean)
+  }
+
+  return []
+}
+
+const fallbackTagFromCategory = (category) => {
+  const categoryTags = {
+    大模型工程: 'LLM',
+    课程笔记: 'Course',
+    论文阅读: 'Paper',
+    研究记录: 'Research',
+    数据集: 'Dataset'
+  }
+
+  return categoryTags[category] || 'Notes'
+}
+
+const inferTags = ({ title, category, content }) => {
+  const text = `${title}\n${category}\n${content}`
+  const tags = tagRules
+    .filter(([, pattern]) => pattern.test(text))
+    .map(([tag]) => tag)
+
+  return Array.from(new Set(tags.length ? tags : [fallbackTagFromCategory(category)])).slice(0, 6)
+}
+
+export const normalizeBlogMeta = (data = {}, content = '', path = '') => {
+  const title = data.title || firstHeadingFromContent(content) || titleFromPath(path) || 'Untitled'
+  const date = data.date || dateFromPath(path)
+  const category = data.category || inferCategory(`${title}\n${content}`)
+  const tags = normalizeTags(data.tags)
+  const summary = data.summary || inferSummary(content)
+
+  return {
+    ...data,
+    title,
+    date,
+    category,
+    tags: tags.length ? tags : inferTags({ title, category, content }),
+    summary
+  }
+}
 
 export const getWikiMetaFromPath = (path) => {
   const segments = path.split('/')
@@ -61,15 +205,18 @@ export const createWikiLoadersByRoutePath = (modules) => Object.fromEntries(
 export const loadBlogSummaries = async (modules) => {
   const postPromises = Object.entries(modules).map(async ([path, loader]) => {
     const rawContent = await loader()
-    const { data } = parseFrontmatter(rawContent)
+    const { data, content } = parseFrontmatter(rawContent)
     const id = getBlogIdFromPath(path)
-    return data.title ? { id, sourcePath: path, ...data } : null
+    return { id, sourcePath: path, ...normalizeBlogMeta(data, content, path) }
   })
 
   const results = await Promise.all(postPromises)
   return results
-    .filter(p => p !== null)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => {
+      const dateA = Number.isNaN(new Date(a.date).getTime()) ? 0 : new Date(a.date).getTime()
+      const dateB = Number.isNaN(new Date(b.date).getTime()) ? 0 : new Date(b.date).getTime()
+      return dateB - dateA
+    })
 }
 
 export const loadWikiSummaries = async (modules) => {

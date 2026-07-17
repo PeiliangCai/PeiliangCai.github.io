@@ -205,7 +205,7 @@ const introSegments = computed(() => {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.75rem 1rem;
-  font-size: clamp(3.2rem, 9vw, 3.2rem);
+  font-size: clamp(2.35rem, 9vw, 3.2rem);
   font-weight: 950;
   line-height: 0.88;
   margin-bottom: 1rem;

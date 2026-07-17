@@ -2,7 +2,7 @@
 import { nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { createBlogLoadersById, parseFrontmatter } from '../utils/blog'
+import { createBlogLoadersById, normalizeBlogMeta, parseFrontmatter } from '../utils/blog'
 import { enhanceMarkdownRoot, renderMarkdown } from '../utils/markdown'
 
 const props = defineProps({
@@ -43,7 +43,7 @@ const loadPost = async () => {
       headingLevels: [1, 2, 3]
     })
 
-    post.value = data
+    post.value = normalizeBlogMeta(data, content, entry.path)
     htmlContent.value = rendered.html
     headings.value = rendered.headings
     isTocOpen.value = false

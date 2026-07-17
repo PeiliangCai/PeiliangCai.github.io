@@ -732,6 +732,23 @@ SoulX-Duplug 判断状态
 存在的一些需要完善的内容：
 - [ ] 断点续训：现在会保存 checkpoint，但还没有完整的 --resume 自动恢复训练步数/optimizer 的流程。长时间训练时建议后续补。
 
+## Stage 3 中文 in-house corpus 平替数据集方案
+
+论文中 Stage 3 使用的中文数据集是作者内部构建的万小时级 in-house corpus，未公开开源。因此无法做到完全复现或完全平替。公开条件下，可以采用中文对话/会议语音数据集进行近似替代。
+
+整体推荐顺序为：
+
+**MagicData-RAMC > AISHELL-4 / AliMeeting > CS-Dialogue > TALCS > HKUST Mandarin Telephone Speech**
+
+| 数据集名字 | 数据集简介 | 可替换的理由 |
+|---|---|---|
+| **MagicData-RAMC** | 开源中文普通话多轮对话语音数据集，约 **180 小时**，手机录制，包含多名说话人，提供人工转写、说话人语音活动时间戳以及官方训练/验证/测试划分。 | **最推荐作为 Stage 3 中文主替代数据集。** Stage 3 需要的是中文对话语音、转写、时间边界和说话人活动信息，用于构造 `user_idle`、`user_nonidle`、`user_backchannel`、`user_complete`、`user_incomplete` 等状态标签。MagicData-RAMC 是中文多轮对话数据，场景上最接近论文中 Fisher-like 中文对话语料的需求。 |
+| **AISHELL-4** | 中文真实会议语音数据集，约 **120 小时**，包含多场真实会议，每场会议通常有多名说话人，提供转写和说话人活动信息，包含短暂停顿、重叠说话、快速话轮切换和噪声等现象。 | 适合补充全双工语音系统中的**短暂停顿、多人重叠、快速换话、噪声干扰**等现象。这些现象与 SoulX-Duplug 关注的误停顿、误响应、误打断问题高度相关。但它是会议场景，不是双人对话场景，因此更适合作为 MagicData-RAMC 的补充数据。 |
+| **AliMeeting** | 中文真实会议语音数据集，约 **118 小时**，包含真实多人会议场景，提供远场麦克风阵列和近场耳麦数据，适用于会议转写、说话人相关任务和多方语音理解任务。 | 适合增强模型对**远场语音、多人话轮切换、会议噪声、多人干扰**的鲁棒性。它可以补充 Stage 3 中对复杂真实场景的覆盖，但同样不是 Fisher 式双人电话对话，因此不建议单独作为主替代数据。 |
+| **CS-Dialogue** | 自发式普通话-英语 code-switching 双人对话数据集，约 **104 小时**，包含双人自然对话录音和完整转写。 | 优势是**双人自然对话**，比会议数据更接近用户与系统轮流说话的交互结构，适合用于构造 `complete`、`incomplete`、`backchannel` 等状态标签。缺点是中英混合，不是纯中文普通话数据，因此更适合作为补充数据。 |
+| **TALCS** | 普通话-英语 code-switching 语音数据集，约 **587 小时**，来自真实在线一对一英语教学场景，包含较多师生互动、问答、停顿和接话现象。 | 规模较大，且是一对一交互场景，可以补充模型对长对话、问答式交流和教学场景的适应能力。但由于场景偏在线英语教学，语言混合明显，与论文中的中文 in-house conversational corpus 仍有较大差距。 |
+| **HKUST Mandarin Telephone Speech** | 普通话电话会话语音数据，约 **200 小时**量级，包含自然电话对话和转写，是中文电话对话领域常用数据集。 | 从数据形态上看，它是**最接近 Fisher 的中文数据**，因为 Fisher 本身也是电话对话语料。适合构造双人会话中的 `complete`、`incomplete`、`backchannel` 等状态。但它不是免费开源数据，需要 LDC 授权，因此只能作为有条件情况下的高质量替代。 |
+
 ## 开会汇报内容：
 第一次：仅读了论文
 第二次：
@@ -758,3 +775,64 @@ SoulX-Duplug 判断状态
 | **FireRedChat pVAD**       | 目标二、目标三        | 噪声/静音 FIR 9.8%，对应拒识率约 90.2%；综合 FIR 47.6%，对应拒识率约 52.4%；IRL 1.045 s                    | 对纯噪声刚好达到目标二，但对真实对话、旁人语音等明显不足                   | 开源全双工系统，可作为目标说话人 VAD 基线        |
 | **Full-Duplex-Bench v1.5** | 目标二、目标三的评测     | 包含有效打断、Backchannel、Talking to Others、Background Speech 四类场景                          | 与“干扰人、非目标语音、背景语音”高度对应，但它是评测集，不是解决模型            | Benchmark 和评测流程开放              |
 | **BayLing-Duplex**         | 目标三、整体全双工      | ISR@2s 100%，平均打断后重叠时长 1.10 s；Turn-taking SR@3s 92%                                   | 其“成功打断”定义是 2 秒内停止，不满足项目的前 1 秒/4 字要求；没有噪声和旁人实验  | 模型权重和推理代码开放，完整训练流程未开放          |
+
+第三次：
+## 1. 为什么选择 Easy-Turn 作为 Stage3 平替数据集
+  Easy-Turn 比较适合作为平替，主要有几个原因：
+  第一，它的任务形态接近 Stage3。Easy-Turn 本身就是面向 turn-taking detection 的语音数据集，包含 complete、incomplete、backchannel、wait 等状态标签。
+
+  第二，它包含真实音频和转写文本。Stage3 不是纯文本训练，而是语音 token + 文本 + 状态标签联合训练。Easy-Turn 每条样本有真实 wav 音频、文本转写和状态标签，可以转换成 SoulX
+  Stage3 所需的 manifest 格式。
+
+  第三，它中英文覆盖更接近 SoulX 的双语设定。原论文里的部分中文数据不完全开源，Easy-Turn 至少提供了中文/英文相关的 turn-taking 数据，可以作为中文数据不可得时的公开替代。
+
+  但使用 Easy-Turn 也有风险，模型效果可能下降，原因包括：
+  - **数据分布不完全一致**：Easy-Turn 的采集场景、说话人、音频质量、标注规范，和 SoulX 原 Stage3 训练数据不完全相同。
+  - **标签语义不完全等价**：Easy-Turn 的 complete/incomplete/backchannel 能映射到 SoulX 状态，但它不一定完全符合 SoulX 原论文的状态边界定义。
+  - 缺少原始英文 Fisher 部分：当前快速版主要用了 Easy-Turn real subset，没有把 Fisher 英文对话数据完整纳入，因此双语覆盖仍不完整。
+  - 抽样比例小：3000 条虽然是真实数据，但相对 Easy-Turn 全量和原论文 Stage3 数据仍然很小，只能验证续训练链路，不代表最终效果。
+  - 训练步数很少：这次只跑了 20 step，模型只看了很小一部分训练样本，指标趋势有参考价值，但不能作为充分收敛结果。
+  - 可能出现灾难性遗忘：如果后续只在 Easy-Turn 上长时间续训，模型可能向 Easy-Turn 的标签分布和语音风格偏移，导致原 SoulX 能力下降。
+  - 验证集很小：本次为了快速演示，验证只用了少量 batch，所以 val 指标波动会比较大。
+
+  ## 2. 3000 样本续训练结果怎么理解
+  本次数据划分：
+  总样本: 3000
+  训练集: 2910
+  验证集: 90
+  训练 step: 20
+  batch size: 1
+
+  epoch 和 step 的区别：
+  - epoch：完整遍历一遍训练集叫 1 个 epoch。这里训练集有 2910 条，如果 batch size = 1，那么完整 1 个 epoch 大约需要 2910 个 step。
+  - step：一次参数更新叫 1 个 step。本次设置 TOTAL_STEPS=20，所以只更新了 20 次参数。
+  - 所以这次不是完整训练了 1 个 epoch，而是只跑了 20 / 2910 ≈ 0.69% 个 epoch。它是快速续训练验证，不是完整收敛实验。
+
+  本次关键结果：
+![[Pasted image 20260711211118.png]]
+  各指标含义：
+  - train/loss_step：当前训练 step 的 loss。它会抖动，因为每个 batch 的样本不同。
+  - train/loss_epoch：当前训练阶段累计平均 loss。越低通常表示模型在训练样本上拟合得更好。
+  - val/loss：验证集 loss。这个比训练 loss 更重要，因为它反映模型对未参与训练样本的泛化情况。本次从 7.97 降到 4.06，说明续训练确实产生了有效优化信号。
+  - train/state_acc：训练集上状态 token 的预测准确率，也就是 complete/incomplete/backchannel/nonidle 等状态判断是否正确。
+  - val/state_acc：验证集状态准确率。本次只有 0.229，说明模型在真实 Easy-Turn 子集上的状态判断还没有充分适配。
+  - train/token_acc：训练集文本 token 预测准确率。
+  - val/token_acc：验证集文本 token 预测准确率。
+
+  曲线图可以这样解释：
+  - 如果 train/loss 下降，说明模型正在学习当前数据。
+  - 如果 val/loss 也下降，说明不是单纯记忆训练样本，而是对验证样本也有改善。
+  - 如果 train/state_acc 上升但 val/state_acc 不升，可能说明训练步数太少、验证集太小，或者存在数据分布差异。
+  - 如果 train/loss 降得很快但 val/loss 不降，可能是过拟合。
+  - 本次结果最重要的点是：val/loss 从 7.97 降到 4.06，说明使用官方 Stage3 权重继续训练真实 Easy-Turn 子集是能跑通并产生有效优化趋势的。
+
+  ## 3. 汇报稿子
+  原论文中 Stage3 使用的数据包含中英文数据，但其中部分中文数据并没有完整开源。因此我在复现时采用了一个公开可获取的替代数据集 Easy-Turn。选择 Easy-Turn 的原因是，它本身就是面向
+  turn-taking detection 的数据集，包含真实音频、文本转写以及 complete、incomplete、backchannel 等标签，和 SoulX Stage3 的状态预测任务比较接近。
+
+  下载并加载了作者公开的 Stage3 权重 SoulX-Duplug-0.6B-Bilingual.pth，在这个基础上进行继续训练。也就是说，这次实验验证的是：作者开源
+  的 Stage3 模型能否在真实 Easy-Turn 子集上继续训练，并输出 loss、验证指标、训练曲线和新的 checkpoint。
+
+  后续如果继续推进，我建议从两个方向做增强：一是扩大真实数据规模，比如严格按照 Easy-Turn 全量的 1/100 小时数进行抽样；二是增加训练 step，并引入更稳定的验证集评估，观察 state
+  accuracy 和 token accuracy 是否持续提升。同时，也需要注意 Easy-Turn 和原论文数据分布不完全一致，长时间只在 Easy-Turn 上训练可能导致模型向该数据集偏移，因此后续最好混入英文
+  Fisher 或其他公开双语对话数据，降低模型能力退化风险。

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "blog:frontmatter": "node scripts/ensure-blog-frontmatter.mjs --write",
+    "blog:frontmatter:check": "node scripts/ensure-blog-frontmatter.mjs --check"
   },
   "dependencies": {
     "lucide-vue-next": "^0.363.0",

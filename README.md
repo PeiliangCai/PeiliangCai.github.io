@@ -22,6 +22,19 @@ npm run dev
 npm run build
 ```
 
+## Blog Frontmatter
+新增 `src/blogs/*.md` 后，可以运行：
+
+```bash
+npm run blog:frontmatter
+```
+
+脚本会为缺少 `title`、`date`、`category`、`tags`、`summary` 的文章自动补全 frontmatter。只想检查是否缺字段时运行：
+
+```bash
+npm run blog:frontmatter:check
+```
+
 ## 📦 部署指引
 当代码推送到 `main` 分支时，GitHub Actions 会自动进行构建并部署。
 
