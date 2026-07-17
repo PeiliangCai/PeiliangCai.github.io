@@ -18,6 +18,7 @@ const isTocOpen = ref(false)
 const isPageActive = ref(true)
 const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
 const postsById = createBlogLoadersById(modules)
+const postIds = Object.keys(postsById)
 
 const enhanceContent = async () => {
   await nextTick()
@@ -40,7 +41,9 @@ const loadPost = async () => {
     const { data, content } = parseFrontmatter(rawContent)
     const rendered = renderMarkdown(content, {
       sourcePath: entry.path,
-      headingLevels: [1, 2, 3]
+      headingLevels: [1, 2, 3],
+      internalLinkBase: '/blog/',
+      internalLinkTargets: postIds
     })
 
     post.value = normalizeBlogMeta(data, content, entry.path)
@@ -69,6 +72,18 @@ const closeToc = () => {
   isTocOpen.value = false
 }
 
+const handleContentClick = (event) => {
+  const link = event.target.closest('a[data-internal-link]')
+  if (!link || !contentRoot.value?.contains(link)) return
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+  const href = link.getAttribute('href')
+  if (!href) return
+
+  event.preventDefault()
+  router.push(href)
+}
+
 const goBack = () => router.push('/blog')
 </script>
 
@@ -88,7 +103,12 @@ const goBack = () => router.push('/blog')
     </header>
 
     <div class="content-layout">
-      <article ref="contentRoot" class="markdown-body glass" v-html="htmlContent"></article>
+      <article
+        ref="contentRoot"
+        class="markdown-body glass"
+        v-html="htmlContent"
+        @click="handleContentClick"
+      ></article>
     </div>
   </div>
 
@@ -320,6 +340,12 @@ const goBack = () => router.push('/blog')
 .markdown-body :deep(a) {
   color: var(--accent-primary);
   border-bottom: 1px solid rgba(0, 229, 255, 0.35);
+}
+
+.markdown-body :deep(.internal-link) {
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
 }
 
 .markdown-body :deep(img) {

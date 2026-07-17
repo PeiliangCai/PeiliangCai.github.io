@@ -27,6 +27,25 @@ const md = new MarkdownIt({
   typographer: true
 })
 
+const normalizeWikiLinkTarget = (target = '') => {
+  const filename = target
+    .trim()
+    .replace(/\\/g, '/')
+    .split('/')
+    .pop()
+    .replace(/\.md$/i, '')
+
+  try {
+    return decodeURIComponent(filename).normalize('NFKC')
+  } catch (error) {
+    return filename.normalize('NFKC')
+  }
+}
+
+const createInternalLinkIndex = (targets = []) => new Map(
+  targets.map(target => [normalizeWikiLinkTarget(target).toLocaleLowerCase(), target])
+)
+
 const slugify = (text, counts = new Map()) => {
   const base = text
     .toLowerCase()
@@ -41,6 +60,59 @@ const slugify = (text, counts = new Map()) => {
   counts.set(base, count + 1)
   return count ? `${base}-${count + 1}` : base
 }
+
+md.inline.ruler.before('link', 'obsidian_wiki_link', (state, silent) => {
+  if (state.src.charCodeAt(state.pos) !== 0x5B || state.src.charCodeAt(state.pos + 1) !== 0x5B) {
+    return false
+  }
+
+  const end = state.src.indexOf(']]', state.pos + 2)
+  if (end === -1) return false
+
+  const rawLink = state.src.slice(state.pos + 2, end).trim()
+  if (!rawLink || rawLink.includes('\n')) return false
+
+  const [rawDestination, ...aliasParts] = rawLink.split('|')
+  const destination = rawDestination.trim()
+  const hashIndex = destination.indexOf('#')
+  const rawTarget = hashIndex === -1 ? destination : destination.slice(0, hashIndex)
+  const heading = hashIndex === -1 ? '' : destination.slice(hashIndex + 1).trim()
+  const targetKey = normalizeWikiLinkTarget(rawTarget).toLocaleLowerCase()
+  const resolvedTarget = rawTarget ? state.env.internalLinkIndex?.get(targetKey) : ''
+
+  if (rawTarget && !resolvedTarget) {
+    if (!silent) {
+      const token = state.push('text', '', 0)
+      token.content = state.src.slice(state.pos, end + 2)
+    }
+    state.pos = end + 2
+    return true
+  }
+
+  if (!resolvedTarget && !heading) return false
+
+  if (!silent) {
+    const route = resolvedTarget
+      ? `${state.env.internalLinkBase}${encodeURIComponent(resolvedTarget)}`
+      : ''
+    const href = heading ? `${route}#${slugify(heading)}` : route
+    const label = aliasParts.join('|').trim()
+      || (rawTarget ? normalizeWikiLinkTarget(rawTarget) : heading)
+    const open = state.push('link_open', 'a', 1)
+
+    open.attrSet('href', href)
+    open.attrSet('class', 'internal-link')
+    open.attrSet('data-internal-link', '')
+
+    const text = state.push('text', '', 0)
+    text.content = label
+
+    state.push('link_close', 'a', -1)
+  }
+
+  state.pos = end + 2
+  return true
+})
 
 const sourceHints = (sourcePath = '') => {
   const filename = sourcePath.split('/').pop() || ''
@@ -125,7 +197,9 @@ export const renderMarkdown = (content, options = {}) => {
   const env = {
     headings: [],
     headingCounts: new Map(),
-    headingLevels: options.headingLevels || [2, 3]
+    headingLevels: options.headingLevels || [2, 3],
+    internalLinkBase: options.internalLinkBase || '',
+    internalLinkIndex: createInternalLinkIndex(options.internalLinkTargets)
   }
   const normalized = normalizeObsidianEmbeds(content, options.sourcePath)
 
