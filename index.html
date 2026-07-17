@@ -29,6 +29,23 @@
     />
     <meta name="twitter:image" content="/avatar2.jpg" />
     <script>
+      ;((location) => {
+        if (!location.search.startsWith('?/')) return
+
+        const restoredPath = location.search
+          .slice(1)
+          .split('&')
+          .map(part => part.replace(/~and~/g, '&'))
+          .join('?')
+
+        window.history.replaceState(
+          null,
+          '',
+          `${location.pathname.slice(0, -1)}${restoredPath}${location.hash}`
+        )
+      })(window.location)
+    </script>
+    <script>
       ;(() => {
         try {
           const savedTheme = localStorage.getItem('theme')
