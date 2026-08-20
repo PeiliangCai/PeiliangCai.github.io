@@ -1,31 +1,8 @@
 <script setup>
-import { computed } from 'vue'
 import { Github, Mail, MapPin, Sparkles } from 'lucide-vue-next'
 import CertificateViewer from '../components/CertificateViewer.vue'
 import profileData from '../data/profile.json'
 import siteData from '../data/site.json'
-
-const introSegments = computed(() => {
-  const advisor = profileData.advisor
-
-  return profileData.intro.map((paragraph) => {
-    if (!advisor?.name || !advisor?.url || !paragraph.includes(advisor.name)) {
-      return [{ text: paragraph }]
-    }
-
-    const segments = []
-    const parts = paragraph.split(advisor.name)
-
-    parts.forEach((part, index) => {
-      if (part) segments.push({ text: part })
-      if (index < parts.length - 1) {
-        segments.push({ text: advisor.name, href: advisor.url })
-      }
-    })
-
-    return segments
-  })
-})
 </script>
 
 <template>
@@ -52,19 +29,8 @@ const introSegments = computed(() => {
       </div>
       
       <div class="bio-intro">
-        <p v-for="(segments, i) in introSegments" :key="i" class="intro-p">
-          <template v-for="(segment, segmentIndex) in segments" :key="`${i}-${segmentIndex}`">
-            <a
-              v-if="segment.href"
-              :href="segment.href"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="intro-link"
-            >
-              {{ segment.text }}
-            </a>
-            <span v-else>{{ segment.text }}</span>
-          </template>
+        <p v-for="paragraph in profileData.intro" :key="paragraph" class="intro-p">
+          {{ paragraph }}
         </p>
       </div>
 
@@ -295,17 +261,6 @@ const introSegments = computed(() => {
   line-height: 1.9;
   color: var(--text-secondary);
   margin-bottom: 1rem;
-}
-
-.intro-link {
-  color: var(--accent-primary);
-  border-bottom: 1px solid rgba(0, 229, 255, 0.38);
-  transition: color 0.2s var(--transition-smooth), border-color 0.2s var(--transition-smooth);
-}
-
-.intro-link:hover {
-  color: var(--accent-secondary);
-  border-color: rgba(182, 255, 59, 0.52);
 }
 
 .quick-contact {

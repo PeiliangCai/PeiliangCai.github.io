@@ -28,6 +28,24 @@ const enhanceContent = async () => {
   enhanceMarkdownRoot(contentRoot.value)
 }
 
+const scrollToRouteHeading = () => {
+  const hash = router.currentRoute.value.hash
+  if (!hash) return
+
+  let id = hash.slice(1)
+  try {
+    id = decodeURIComponent(id)
+  } catch (error) {
+    // Use the original hash when it is not URI encoded correctly.
+  }
+
+  const target = document.getElementById(id)
+  if (!target || !contentRoot.value?.contains(target)) return
+
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+  target.scrollIntoView({ behavior, block: 'start' })
+}
+
 const loadPage = async () => {
   try {
     const routePath = props.topic ? `${props.topic}/${props.id}` : props.id
@@ -46,10 +64,12 @@ const loadPage = async () => {
     const rendered = renderMarkdown(content, { sourcePath: entry.path })
 
     page.value = data
+    document.title = `${page.value.title} | Cai Peiliang`
     htmlContent.value = rendered.html
     headings.value = rendered.headings
     isTocOpen.value = false
     await enhanceContent()
+    scrollToRouteHeading()
   } catch (error) {
     console.error('Error loading wiki page:', error)
     router.push('/wiki')
@@ -60,6 +80,7 @@ watch(() => `${props.topic || ''}/${props.id || ''}`, loadPage, { immediate: tru
 
 onActivated(() => {
   isPageActive.value = true
+  if (page.value?.title) document.title = `${page.value.title} | Cai Peiliang`
 })
 
 onDeactivated(() => {
@@ -71,7 +92,15 @@ const closeToc = () => {
   isTocOpen.value = false
 }
 
-const goBack = () => router.push('/wiki')
+const goBack = () => {
+  const previousPath = router.options.history.state.back
+  if (typeof previousPath === 'string' && /^\/wiki(?:[?#]|$)/.test(previousPath)) {
+    router.back()
+    return
+  }
+
+  router.push('/wiki')
+}
 </script>
 
 <template>

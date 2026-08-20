@@ -8,26 +8,26 @@
     <title>Cai Peiliang (蔡沛良) | Sun Yat-sen University</title>
     <meta
       name="description"
-      content="Cai Peiliang (蔡沛良), Software Engineering student at Sun Yat-sen University. Portfolio, research notes, Agentic RAG projects, AI agents, and technical writing."
+      content="Cai Peiliang (蔡沛良), Software Engineering student at Sun Yat-sen University interested in AI4SE, SE4AI, LLM4SE, trustworthy AI, and agentic systems."
     />
     <meta name="author" content="Cai Peiliang" />
     <meta name="theme-color" content="#07101d" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://peiliangcai.github.io/" />
-    <meta property="og:title" content="Cai Peiliang (蔡沛良) | Portfolio & Knowledge Base" />
+    <meta property="og:title" content="Cai Peiliang (蔡沛良) | Research & Knowledge Base" />
     <meta
       property="og:description"
-      content="Software Engineering @ SYSU. Researching Agentic RAG, AI Agents, and AI-native systems."
+      content="Software Engineering @ SYSU. Interested in AI4SE, SE4AI, LLM4SE, trustworthy AI, and agentic systems."
     />
-    <meta property="og:image" content="/avatar2.jpg" />
+    <meta property="og:image" content="https://peiliangcai.github.io/avatar.jpg" />
     <meta property="og:locale" content="zh_CN" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Cai Peiliang (蔡沛良) | Portfolio & Knowledge Base" />
+    <meta name="twitter:title" content="Cai Peiliang (蔡沛良) | Research & Knowledge Base" />
     <meta
       name="twitter:description"
-      content="Software Engineering @ SYSU. Researching Agentic RAG, AI Agents, and AI-native systems."
+      content="Software Engineering @ SYSU. Interested in AI4SE, SE4AI, LLM4SE, trustworthy AI, and agentic systems."
     />
-    <meta name="twitter:image" content="/avatar2.jpg" />
+    <meta name="twitter:image" content="https://peiliangcai.github.io/avatar.jpg" />
     <script>
       ;((location) => {
         if (!location.search.startsWith('?/')) return
@@ -49,8 +49,7 @@
       ;(() => {
         try {
           const savedTheme = localStorage.getItem('theme')
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const theme = savedTheme || (prefersDark ? 'dark' : 'light')
+          const theme = savedTheme === 'light' ? 'light' : 'dark'
           document.documentElement.setAttribute('data-theme', theme)
         } catch (error) {
           document.documentElement.setAttribute('data-theme', 'dark')

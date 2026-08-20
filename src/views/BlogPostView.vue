@@ -25,6 +25,24 @@ const enhanceContent = async () => {
   enhanceMarkdownRoot(contentRoot.value)
 }
 
+const scrollToRouteHeading = () => {
+  const hash = router.currentRoute.value.hash
+  if (!hash) return
+
+  let id = hash.slice(1)
+  try {
+    id = decodeURIComponent(id)
+  } catch (error) {
+    // Use the original hash when it is not URI encoded correctly.
+  }
+
+  const target = document.getElementById(id)
+  if (!target || !contentRoot.value?.contains(target)) return
+
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+  target.scrollIntoView({ behavior, block: 'start' })
+}
+
 const loadPost = async () => {
   try {
     const entry = postsById[props.id]
@@ -47,10 +65,12 @@ const loadPost = async () => {
     })
 
     post.value = normalizeBlogMeta(data, content, entry.path)
+    document.title = `${post.value.title} | Cai Peiliang`
     htmlContent.value = rendered.html
     headings.value = rendered.headings
     isTocOpen.value = false
     await enhanceContent()
+    scrollToRouteHeading()
   } catch (error) {
     console.error('Error loading post:', error)
     router.push('/blog')
@@ -61,6 +81,7 @@ watch(() => props.id, loadPost, { immediate: true })
 
 onActivated(() => {
   isPageActive.value = true
+  if (post.value?.title) document.title = `${post.value.title} | Cai Peiliang`
 })
 
 onDeactivated(() => {
@@ -84,7 +105,15 @@ const handleContentClick = (event) => {
   router.push(href)
 }
 
-const goBack = () => router.push('/blog')
+const goBack = () => {
+  const previousPath = router.options.history.state.back
+  if (typeof previousPath === 'string' && /^\/blog(?:[?#]|$)/.test(previousPath)) {
+    router.back()
+    return
+  }
+
+  router.push('/blog')
+}
 </script>
 
 <template>

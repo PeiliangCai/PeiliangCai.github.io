@@ -8,11 +8,20 @@ const blogs = ref([])
 const categories = ref(['全部'])
 const selectedCategory = ref('全部')
 const searchQuery = ref('')
+const isLoading = ref(true)
+const loadError = ref('')
+const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
 
 onMounted(async () => {
-  const modules = import.meta.glob('../blogs/*.md', { query: '?raw', import: 'default' })
-  blogs.value = await loadBlogSummaries(modules)
-  categories.value = getCategoriesFromPosts(blogs.value)
+  try {
+    blogs.value = await loadBlogSummaries(modules)
+    categories.value = getCategoriesFromPosts(blogs.value)
+  } catch (error) {
+    console.error('Error loading blog posts:', error)
+    loadError.value = 'Unable to load posts. Please refresh the page.'
+  } finally {
+    isLoading.value = false
+  }
 })
 
 const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery.value, selectedCategory.value))
@@ -55,28 +64,37 @@ const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery
 
       <!-- Main Feed -->
       <main class="blog-feed">
-        <div class="feed-meta geek-font">{{ filteredBlogs.length }} POSTS INDEXED</div>
-        <div v-if="filteredBlogs.length === 0" class="empty">No posts found.</div>
-        
-        <router-link 
-          v-for="post in filteredBlogs" 
-          :key="post.id"
-          :to="`/blog/${post.id}`"
-          class="post-card glass"
-        >
-          <div class="post-header">
-            <span class="post-cat"># {{ post.category || 'Article' }}</span>
-            <span v-if="post.date" class="post-date"><Calendar :size="14" /> {{ post.date }}</span>
-          </div>
-          <h2 class="post-title">{{ post.title }}</h2>
-          <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
-          <div v-if="post.tags?.length" class="post-tags">
-            <span v-for="tag in post.tags || []" :key="tag" class="tag">{{ tag }}</span>
-          </div>
-          <div class="read-more">
-            Read Post <ChevronRight :size="16" />
-          </div>
-        </router-link>
+        <div class="feed-meta geek-font" aria-live="polite">
+          {{ isLoading ? 'INDEXING POSTS...' : `${filteredBlogs.length} POSTS INDEXED` }}
+        </div>
+
+        <div v-if="isLoading" class="loading-list" aria-label="Loading posts">
+          <div v-for="item in 2" :key="item" class="loading-card glass" aria-hidden="true"></div>
+        </div>
+        <div v-else-if="loadError" class="empty" role="alert">{{ loadError }}</div>
+
+        <template v-else>
+          <div v-if="filteredBlogs.length === 0" class="empty">No posts found.</div>
+          <router-link
+            v-for="post in filteredBlogs"
+            :key="post.id"
+            :to="`/blog/${post.id}`"
+            class="post-card glass"
+          >
+            <div class="post-header">
+              <span class="post-cat"># {{ post.category || 'Article' }}</span>
+              <span v-if="post.date" class="post-date"><Calendar :size="14" /> {{ post.date }}</span>
+            </div>
+            <h2 class="post-title">{{ post.title }}</h2>
+            <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
+            <div v-if="post.tags?.length" class="post-tags">
+              <span v-for="tag in post.tags || []" :key="tag" class="tag">{{ tag }}</span>
+            </div>
+            <div class="read-more">
+              Read Post <ChevronRight :size="16" />
+            </div>
+          </router-link>
+        </template>
       </main>
     </div>
   </div>
@@ -164,6 +182,29 @@ const filteredBlogs = computed(() => filterContentItems(blogs.value, searchQuery
   border: 1px dashed var(--border-color);
   border-radius: 8px;
   background: var(--surface-panel-soft);
+}
+
+.loading-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.loading-card {
+  height: 13rem;
+  overflow: hidden;
+}
+
+.loading-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 34%, rgba(0, 229, 255, 0.1) 48%, transparent 62%);
+  transform: translateX(-100%);
+  animation: loading-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes loading-sweep {
+  to { transform: translateX(100%); }
 }
 
 .search-box input {

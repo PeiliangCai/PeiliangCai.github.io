@@ -7,11 +7,20 @@ const pages = ref([])
 const categories = ref(['全部'])
 const selectedCategory = ref('全部')
 const searchQuery = ref('')
+const isLoading = ref(true)
+const loadError = ref('')
+const modules = import.meta.glob('../wiki/**/*.md', { query: '?raw', import: 'default' })
 
 onMounted(async () => {
-  const modules = import.meta.glob('../wiki/**/*.md', { query: '?raw', import: 'default' })
-  pages.value = await loadWikiSummaries(modules)
-  categories.value = getCategoriesFromPosts(pages.value)
+  try {
+    pages.value = await loadWikiSummaries(modules)
+    categories.value = getCategoriesFromPosts(pages.value)
+  } catch (error) {
+    console.error('Error loading wiki pages:', error)
+    loadError.value = 'Unable to load wiki pages. Please refresh the page.'
+  } finally {
+    isLoading.value = false
+  }
 })
 
 const getWikiLink = (page) => page.topic ? `/wiki/${page.topic}/${page.id}` : `/wiki/${page.id}`
@@ -54,28 +63,37 @@ const filteredPages = computed(() => filterContentItems(pages.value, searchQuery
       </aside>
 
       <main class="wiki-feed">
-        <div class="feed-meta geek-font">{{ filteredPages.length }} NODES INDEXED</div>
-        <div v-if="filteredPages.length === 0" class="empty">No wiki pages found.</div>
+        <div class="feed-meta geek-font" aria-live="polite">
+          {{ isLoading ? 'INDEXING NODES...' : `${filteredPages.length} NODES INDEXED` }}
+        </div>
 
-        <router-link
-          v-for="page in filteredPages"
-          :key="page.routePath"
-          :to="getWikiLink(page)"
-          class="wiki-card glass"
-        >
-          <div class="wiki-card-meta">
-            <span class="wiki-cat"><BookOpen :size="14" /> {{ page.category || 'Wiki' }}</span>
-            <span v-if="page.updated" class="wiki-date"><Calendar :size="14" /> {{ page.updated }}</span>
-          </div>
-          <h2>{{ page.title }}</h2>
-          <p v-if="page.summary">{{ page.summary }}</p>
-          <div class="wiki-tags">
-            <span v-for="tag in page.tags || []" :key="tag">{{ tag }}</span>
-          </div>
-          <div class="read-more">
-            Open Node <ChevronRight :size="16" />
-          </div>
-        </router-link>
+        <div v-if="isLoading" class="loading-list" aria-label="Loading wiki pages">
+          <div v-for="item in 2" :key="item" class="loading-card glass" aria-hidden="true"></div>
+        </div>
+        <div v-else-if="loadError" class="empty" role="alert">{{ loadError }}</div>
+
+        <template v-else>
+          <div v-if="filteredPages.length === 0" class="empty">No wiki pages found.</div>
+          <router-link
+            v-for="page in filteredPages"
+            :key="page.routePath"
+            :to="getWikiLink(page)"
+            class="wiki-card glass"
+          >
+            <div class="wiki-card-meta">
+              <span class="wiki-cat"><BookOpen :size="14" /> {{ page.category || 'Wiki' }}</span>
+              <span v-if="page.updated" class="wiki-date"><Calendar :size="14" /> {{ page.updated }}</span>
+            </div>
+            <h2>{{ page.title }}</h2>
+            <p v-if="page.summary">{{ page.summary }}</p>
+            <div v-if="page.tags?.length" class="wiki-tags">
+              <span v-for="tag in page.tags || []" :key="tag">{{ tag }}</span>
+            </div>
+            <div class="read-more">
+              Open Node <ChevronRight :size="16" />
+            </div>
+          </router-link>
+        </template>
       </main>
     </div>
   </div>
@@ -208,6 +226,29 @@ const filteredPages = computed(() => filterContentItems(pages.value, searchQuery
   background: var(--surface-panel-soft);
 }
 
+.loading-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.loading-card {
+  height: 13rem;
+  overflow: hidden;
+}
+
+.loading-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 34%, rgba(0, 229, 255, 0.1) 48%, transparent 62%);
+  transform: translateX(-100%);
+  animation: loading-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes loading-sweep {
+  to { transform: translateX(100%); }
+}
+
 .wiki-card {
   display: block;
   padding: 2rem;
@@ -284,9 +325,21 @@ const filteredPages = computed(() => filterContentItems(pages.value, searchQuery
   }
   .wiki-sidebar {
     position: static;
+    gap: 1.25rem;
+  }
+  .cat-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+  }
+  .cat-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
   .wiki-card-meta {
     flex-direction: column;
+    gap: 0.45rem;
   }
 }
 </style>

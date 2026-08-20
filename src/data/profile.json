@@ -2,21 +2,17 @@
   "name": "Cai Peiliang",
   "nameCn": "蔡沛良",
   "tagline": "Software Engineering @ SYSU",
-  "summaryCn": "中山大学软件工程本科生，关注 Agentic RAG、AI Agents 与 AI-native productivity tools 的系统设计和工程落地。",
+  "summaryCn": "中山大学软件工程本科生，学术兴趣聚焦于人工智能与软件工程的交叉领域，主要包括 AI4SE 与 SE4AI，尤其关注大语言模型赋能软件工程、智能代码生成，以及面向大模型的可信性评测；同时对 Agentic RAG 与 AI Agents 保持兴趣。",
   "intro": [
-    "Hi, I'm Peiliang Cai, a Software Engineering student at Sun Yat-sen University, working under the guidance of Dr. Weibin Wu.",
-    "My current research focuses on the design and implementation of Agentic RAG. I am deeply passionate about exploring the frontiers of AI Agents and abstracting elegant system architectures from complex logic to build next-generation AI-native productivity tools."
+    "Hi, I'm Peiliang Cai, a Software Engineering student at Sun Yat-sen University.",
+    "My academic interests lie at the intersection of Software Engineering and Artificial Intelligence, with a primary focus on AI4SE and SE4AI. I am particularly interested in LLM-powered software engineering, intelligent code generation, and trustworthy evaluation of large language models. I also maintain a secondary interest in Agentic RAG and AI agents."
   ],
-  "advisor": {
-    "name": "Dr. Weibin Wu",
-    "url": "https://sse.sysu.edu.cn/teacher/249"
-  },
   "focusAreas": [
-    "Agentic RAG",
-    "AI Agents",
-    "LLM Systems",
-    "Software Engineering",
-    "Trustworthy Machine Learning"
+    "AI4SE",
+    "SE4AI",
+    "LLM4SE",
+    "Trustworthy AI",
+    "Agentic Systems"
   ],
   "contact": {
     "location": "Zhuhai, China",
